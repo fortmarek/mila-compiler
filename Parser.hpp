@@ -38,10 +38,13 @@ private:
     bool parseDeclaration(std::vector<ASTNode*>& result);
     bool parseConstDeclaration(ASTNode*& result);
     bool parseVarDeclaration(ASTNode*& result);
+    bool parseBlock(std::vector<ASTNode *> &result);
+    bool parseInstruction(std::vector<ASTNode *>&result);
+    bool parseAssign(ASTNode *&result, Token identifier);
+    bool parseProcedure(ASTNode *&result, Token identifier);
     bool parseExpression(ASTNode*& result);
     bool parseTerm(ASTNode*& result);
     bool parseFactor(ASTNode*& result);
-    bool parseMain(ASTNode*& result);
     bool eat(Token token);
     bool readIdentifier(Token& token);
     

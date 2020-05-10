@@ -25,4 +25,5 @@ const void ProgramASTNode::print() {
     std::cout << "Program node:" << std::endl;
     std::cout << "name: " << name << std::endl;
     declarations->print();
+    main->print();
 }

@@ -54,6 +54,12 @@ enum Kind {
     // 1-character operators
     tok_init = -32,
     tok_type = -33,
+    tok_dot = -34,
+    tok_left_paren = -35,
+    tok_right_paren = -36,
+    tok_multiplier = -37,
+    tok_plus = -38,
+    tok_minus = -39,
 };
 
 

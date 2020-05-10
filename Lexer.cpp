@@ -40,6 +40,13 @@ Token Lexer::token(const std::string &str) {
             {"=", Kind::tok_init},
             {":=", Kind::tok_assign},
             {":", Kind::tok_type},
+            {"begin", Kind::tok_begin},
+            {"end", Kind::tok_end},
+            {"(", Kind::tok_left_paren},
+            {")", Kind::tok_right_paren},
+            {"*", Kind::tok_multiplier},
+            {"+", Kind::tok_plus},
+            {"-", Kind::tok_minus},
     };
 
     auto token = kindMap.find(str);
@@ -77,7 +84,7 @@ Token Lexer::operatorToken() {
 }
 
 bool Lexer::isOperator(char character) {
-    std::regex re("[:=|&;]");
+    std::regex re("[:=|&+-*()]");
     std::cmatch m;
     return std::regex_search(&character, m, re);
 }
@@ -85,6 +92,7 @@ bool Lexer::isOperator(char character) {
 Token Lexer::lexToken() {
     while (isSpace(peek()))
         get();
+
     if(isOperator(peek()))
         return operatorToken();
 
@@ -94,13 +102,22 @@ Token Lexer::lexToken() {
     if(isDigit(peek()))
         return digitToken();
 
+    if(peek() == ';') {
+        get();
+        return Token(Kind::tok_div, ";");
+    }
+
     return Token(Kind::tok_end, "");
 }
 
 Token Lexer::getToken() {
     Token currentToken = nextToken;
     nextToken = lexToken();
+    std::cout << currentToken.getValue() << std::endl;
+    std::cout << currentToken.getKind() << std::endl;
+    std::cout << nextToken.getValue() << std::endl;
     std::cout << nextToken.getKind() << std::endl;
+    std::cout << "-----" << std::endl;
     return currentToken;
 }
 
