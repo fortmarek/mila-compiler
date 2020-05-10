@@ -1,18 +1,35 @@
 #include "Parser.hpp"
+#include "AST/ProgramASTNode.h"
 
-Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()), MilaContext(), MilaBuilder(MilaContext), MilaModule("mila", MilaContext) {
-    CurTok = 0;
-}
+Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()), MilaContext(), MilaBuilder(MilaContext), MilaModule("mila", MilaContext) {}
 
 Parser::Parser(const Parser &parser) : MilaContext(), MilaBuilder(MilaContext), MilaModule("mila", MilaContext) {
-    CurTok = parser.CurTok;
     lexer = parser.lexer;
 }
 
-bool Parser::Parse() {
-    getNextToken();
-    getNextToken();
+bool Parser::logError(const std::string &reason) {
+    std::cerr << "Parsing failed with error: " << reason << std::endl;
+    return false;
+}
+
+bool Parser::parseProgram() {
+    Token token = getNextToken();
+
+    if(token.getKind() != Kind::tok_program)
+        return logError("Program must start with 'program name'");
+
+    Token identifierToken = getNextToken();
+    if(identifierToken.getKind() != Kind::tok_identifier)
+        return logError("program must be followed by identifier");
+    auto programNode = ProgramASTNode(identifierToken.getValue());
+
+    programNode.print();
+
     return true;
+}
+
+bool Parser::Parse() {
+    return parseProgram();
 }
 
 const Module& Parser::Generate() {
@@ -53,9 +70,6 @@ const Module& Parser::Generate() {
  * getNextToken reads another token from the lexer and updates curTok with ts result
  * Every function in the parser will assume that CurTok is the cureent token that needs to be parsed
  */
-
-int Parser::getNextToken() {
-    CurTok = lexer->gettok();
-    std::cout << CurTok << std::endl;
-    return CurTok;
+Token Parser::getNextToken() {
+    return lexer->gettok();
 }

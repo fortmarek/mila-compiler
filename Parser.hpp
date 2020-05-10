@@ -28,10 +28,15 @@ public:
     const Module& Generate(); // generate
 
 private:
-    int getNextToken();
+    Token getNextToken();
+
+    bool logError(const std::string& reason);
+
+    bool parseProgram();
+    bool parseDeclaration();
+    bool parseMain();
     
     Lexer* lexer;            // lexer is used to read tokens
-    int CurTok;               // to keep the current token
     
     LLVMContext MilaContext;   // llvm context
     IRBuilder<> MilaBuilder;   // llvm builder
