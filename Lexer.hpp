@@ -11,7 +11,8 @@ public:
     Lexer();
     ~Lexer() = default;
 
-    Token gettok();
+    Token getToken();
+    Token peekNextToken();
     const std::string& identifierStr() const { return this->m_IdentifierStr; }
     int numVal() { return this->m_NumVal; }
 private:
@@ -25,8 +26,11 @@ private:
     bool isDigit(char character);
     bool isIdentifier(char character);
     Token identifierToken();
+    Token digitToken();
     Token token(const std::string & str);
-
+    Token nextToken;
+    Token lexToken();
+    Token firstToken();
 };
 
 #endif //PJPPROJECT_LEXER_HPP

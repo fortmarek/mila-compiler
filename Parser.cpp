@@ -1,5 +1,9 @@
+#include <sstream>
 #include "Parser.hpp"
 #include "AST/ProgramASTNode.h"
+#include "AST/IntNode.h"
+#include "AST/ConstNode.h"
+#include "AST/CompoundNode.h"
 
 Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()), MilaContext(), MilaBuilder(MilaContext), MilaModule("mila", MilaContext) {}
 
@@ -21,10 +25,93 @@ bool Parser::parseProgram() {
     Token identifierToken = getNextToken();
     if(identifierToken.getKind() != Kind::tok_identifier)
         return logError("program must be followed by identifier");
-    auto programNode = ProgramASTNode(identifierToken.getValue());
+
+    if(lexer->getToken().getKind() != Kind::tok_div)
+        return logError("Missing ; after program declaration");
+
+    std::vector<ASTNode*> declarations = {};
+
+    if(!parseDeclaration(declarations))
+        return false;
+    declarations[0]->print();
+    auto declarationsNode = new CompoundNode(declarations);
+
+    auto programNode = ProgramASTNode(identifierToken.getValue(), declarationsNode, nullptr);
 
     programNode.print();
 
+    return true;
+}
+
+bool Parser::parseDeclaration(std::vector<ASTNode*>& result) {
+    Token nextToken = lexer->peekNextToken();
+    ASTNode* currentNodeResult = nullptr;
+    switch(nextToken.getKind()) {
+        case Kind::tok_const:
+            if(!parseConstDeclaration(currentNodeResult))
+                return false;
+            break;
+        case Kind::tok_var:
+            break;
+        case Kind::tok_begin:
+            return true;
+        default:
+            std::stringstream ss;
+            ss << "Unexpected token " << nextToken.getValue();
+            return logError(ss.str());
+    }
+    result.push_back(currentNodeResult);
+    return parseDeclaration(result);
+}
+
+bool Parser::parseConstDeclaration(ASTNode*& result) {
+    if(lexer->getToken().getKind() != Kind::tok_const)
+        return logError("Expected const");
+
+    Token identifier = lexer->getToken();
+    if(identifier.getKind() != Kind::tok_identifier)
+        return logError("Expected identifier");
+
+    if(lexer->getToken().getKind() != Kind::tok_init)
+        return logError("Expected =");
+
+    ASTNode* value = nullptr;
+    if(!parseExpression(value))
+        return false;
+    result = new ConstNode(identifier.getValue(), value);
+
+    if(lexer->getToken().getKind() != Kind::tok_div)
+        return logError("Missing ;");
+
+    return true;
+}
+
+bool Parser::parseExpression(ASTNode*& result) {
+    // TODO: Reset of expression
+    return parseTerm(result);
+}
+
+bool Parser::parseTerm(ASTNode*& result) {
+    // TODO: Rest of term
+    return parseFactor(result);
+}
+
+bool Parser::parseFactor(ASTNode*& result) {
+    switch(lexer->peekNextToken().getKind()) {
+        case Kind::tok_integer: {
+            int value = std::atoi(lexer->getToken().getValue().c_str());
+            result = new IntNode(value);
+            return true;
+        }
+        default: {
+            std::stringstream ss;
+            ss << "Unexpected token " << lexer->getToken().getValue();
+            return logError(ss.str());
+        }
+    }
+}
+
+bool Parser::parseMain(ASTNode*& result) {
     return true;
 }
 
@@ -64,12 +151,6 @@ const Module& Parser::Generate() {
     return this->MilaModule;
 }
 
-/*
- * Simple token buffer.
- * CurTok is the current token the parser is looking at
- * getNextToken reads another token from the lexer and updates curTok with ts result
- * Every function in the parser will assume that CurTok is the cureent token that needs to be parsed
- */
 Token Parser::getNextToken() {
-    return lexer->gettok();
+    return lexer->getToken();
 }

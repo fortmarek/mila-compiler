@@ -5,9 +5,24 @@
 #include <iostream>
 #include "ProgramASTNode.h"
 
-ProgramASTNode::ProgramASTNode(std::string name) :name(std::move(name)) {}
+ProgramASTNode::ProgramASTNode(
+        std::string name,
+        ASTNode* declarations,
+        ASTNode* main):
+        name(std::move(name)),
+        declarations(declarations),
+        main(main)
+{}
 
-void ProgramASTNode::print() {
+ProgramASTNode::ProgramASTNode(
+        const ProgramASTNode &programNode
+):
+        declarations(programNode.declarations),
+        main(programNode.main)
+{}
+
+const void ProgramASTNode::print() {
     std::cout << "Program node:" << std::endl;
-    std::cout << "\tname: " << name << std::endl;
+    std::cout << "name: " << name << std::endl;
+    declarations->print();
 }

@@ -10,10 +10,13 @@
 
 class ProgramASTNode: public ASTNode {
 public:
-    ProgramASTNode(std::string name);
-    void print();
+    explicit ProgramASTNode(std::string name, ASTNode* declarations, ASTNode* main);
+    ProgramASTNode(const ProgramASTNode &programNode);
+    const void print() override;
 private:
     std::string name;
+    ASTNode* declarations;
+    ASTNode* main;
 };
 
 

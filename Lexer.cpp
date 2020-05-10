@@ -1,12 +1,15 @@
 #include "Lexer.hpp"
 #include <regex>
 
-Lexer::Lexer() {
+Token Lexer::firstToken() {
     char inputChar;
     while(std::cin >> std::noskipws >> inputChar)
         input.push_back(inputChar);
     currentPtr = input.begin();
+    return lexToken();
 }
+
+Lexer::Lexer() :nextToken(firstToken()) {}
 
 char Lexer::peek() { return *currentPtr; }
 
@@ -19,7 +22,7 @@ bool Lexer::isSpace(char character) {
 bool Lexer::isDigit(char character) {
     std::regex re("[0-9]");
     std::cmatch m;
-    return std::regex_search(reinterpret_cast<const char*>(character), m, re);
+    return std::regex_search(&character, m, re);
 }
 
 bool Lexer::isIdentifier(char character) {
@@ -30,7 +33,9 @@ bool Lexer::isIdentifier(char character) {
 
 Token Lexer::token(const std::string &str) {
     const std::map<std::string, Kind> kindMap = {
-            {"program", Kind::tok_program}
+            {"program", Kind::tok_program},
+            {"const", Kind::tok_const},
+            {"var", Kind::tok_var}
     };
 
     auto token = kindMap.find(str);
@@ -49,16 +54,39 @@ Token Lexer::identifierToken() {
     return token(identifier);
 }
 
-/*
- * Function to return the next token from standard input
- * the variable 'm_IdentifierStr' is set there in case of an identifier,
- * the variable 'm_NumVal' is set there in case of a number.
- */
-Token Lexer::gettok() {
+Token Lexer::digitToken() {
+    auto startOfToken = currentPtr;
+    get();
+    while(isDigit(peek()))
+        get();
+    std::string identifier(startOfToken, currentPtr);
+    return Token(Kind::tok_integer, identifier);
+}
+
+Token Lexer::lexToken() {
     while (isSpace(peek()))
         get();
     if(isIdentifier(peek()))
         return identifierToken();
+    if(isDigit(peek()))
+        return digitToken();
+    switch(get()) {
+        case ';':
+            return Token(Kind::tok_div, ";");
+        case '=':
+            return Token(Kind::tok_init, "=");
+    }
     return Token(Kind::tok_end, "");
+}
+
+Token Lexer::getToken() {
+    Token currentToken = nextToken;
+    nextToken = lexToken();
+    std::cout << nextToken.getKind() << std::endl;
+    return currentToken;
+}
+
+Token Lexer::peekNextToken() {
+    return nextToken;
 }
 

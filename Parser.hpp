@@ -15,6 +15,8 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
+#include "AST/ASTNode.h"
+#include <vector>
 
 using namespace llvm;
 
@@ -33,8 +35,12 @@ private:
     bool logError(const std::string& reason);
 
     bool parseProgram();
-    bool parseDeclaration();
-    bool parseMain();
+    bool parseDeclaration(std::vector<ASTNode*>& result);
+    bool parseConstDeclaration(ASTNode*& result);
+    bool parseExpression(ASTNode*& result);
+    bool parseTerm(ASTNode*& result);
+    bool parseFactor(ASTNode*& result);
+    bool parseMain(ASTNode*& result);
     
     Lexer* lexer;            // lexer is used to read tokens
     

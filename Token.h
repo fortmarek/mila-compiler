@@ -48,7 +48,10 @@ enum Kind {
 
     // keywords in for loop
             tok_to =            -30,
-    tok_downto =        -31
+    tok_downto =        -31,
+
+    // 1-character operators
+    tok_init = -32,
 };
 
 
