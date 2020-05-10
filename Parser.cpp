@@ -1,9 +1,16 @@
 #include "Parser.hpp"
 
-Parser::Parser() : MilaContext(), MilaBuilder(MilaContext), MilaModule("mila", MilaContext) {
+Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()), MilaContext(), MilaBuilder(MilaContext), MilaModule("mila", MilaContext) {
+    CurTok = 0;
+}
+
+Parser::Parser(const Parser &parser) : MilaContext(), MilaBuilder(MilaContext), MilaModule("mila", MilaContext) {
+    CurTok = parser.CurTok;
+    lexer = parser.lexer;
 }
 
 bool Parser::Parse() {
+    getNextToken();
     getNextToken();
     return true;
 }
@@ -30,7 +37,7 @@ const Module& Parser::Generate() {
 
       // call writeln with value from lexel
       MilaBuilder.CreateCall(MilaModule.getFunction("writeln"), {
-        ConstantInt::get(MilaContext, APInt(32, m_Lexer.numVal()))
+        ConstantInt::get(MilaContext, APInt(32, lexer->numVal()))
       });
 
       // return 0
@@ -48,5 +55,7 @@ const Module& Parser::Generate() {
  */
 
 int Parser::getNextToken() {
-    return CurTok = m_Lexer.gettok();
+    CurTok = lexer->gettok();
+    std::cout << CurTok << std::endl;
+    return CurTok;
 }

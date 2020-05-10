@@ -20,8 +20,9 @@ using namespace llvm;
 
 class Parser {
 public:
-    Parser();
+    explicit Parser(std::unique_ptr<Lexer>& lexer);
     ~Parser() = default;
+    Parser(const Parser &parser);
 
     bool Parse();             // parse
     const Module& Generate(); // generate
@@ -29,7 +30,7 @@ public:
 private:
     int getNextToken();
     
-    Lexer m_Lexer;            // lexer is used to read tokens
+    Lexer* lexer;            // lexer is used to read tokens
     int CurTok;               // to keep the current token
     
     LLVMContext MilaContext;   // llvm context
