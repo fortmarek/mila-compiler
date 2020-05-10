@@ -25,6 +25,8 @@ private:
     bool isSpace(char character);
     bool isDigit(char character);
     bool isIdentifier(char character);
+    bool isOperator(char character);
+    Token operatorToken();
     Token identifierToken();
     Token digitToken();
     Token token(const std::string & str);

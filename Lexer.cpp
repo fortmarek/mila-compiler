@@ -35,7 +35,11 @@ Token Lexer::token(const std::string &str) {
     const std::map<std::string, Kind> kindMap = {
             {"program", Kind::tok_program},
             {"const", Kind::tok_const},
-            {"var", Kind::tok_var}
+            {"var", Kind::tok_var},
+            {";", Kind::tok_div},
+            {"=", Kind::tok_init},
+            {":=", Kind::tok_assign},
+            {":", Kind::tok_type},
     };
 
     auto token = kindMap.find(str);
@@ -63,19 +67,33 @@ Token Lexer::digitToken() {
     return Token(Kind::tok_integer, identifier);
 }
 
+Token Lexer::operatorToken() {
+    auto startOfToken = currentPtr;
+    get();
+    while(isOperator(peek()))
+        get();
+    std::string operatorString(startOfToken, currentPtr);
+    return token(operatorString);
+}
+
+bool Lexer::isOperator(char character) {
+    std::regex re("[:=|&;]");
+    std::cmatch m;
+    return std::regex_search(&character, m, re);
+}
+
 Token Lexer::lexToken() {
     while (isSpace(peek()))
         get();
+    if(isOperator(peek()))
+        return operatorToken();
+
     if(isIdentifier(peek()))
         return identifierToken();
+
     if(isDigit(peek()))
         return digitToken();
-    switch(get()) {
-        case ';':
-            return Token(Kind::tok_div, ";");
-        case '=':
-            return Token(Kind::tok_init, "=");
-    }
+
     return Token(Kind::tok_end, "");
 }
 

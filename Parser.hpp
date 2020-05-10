@@ -37,10 +37,13 @@ private:
     bool parseProgram();
     bool parseDeclaration(std::vector<ASTNode*>& result);
     bool parseConstDeclaration(ASTNode*& result);
+    bool parseVarDeclaration(ASTNode*& result);
     bool parseExpression(ASTNode*& result);
     bool parseTerm(ASTNode*& result);
     bool parseFactor(ASTNode*& result);
     bool parseMain(ASTNode*& result);
+    bool eat(Token token);
+    bool readIdentifier(Token& token);
     
     Lexer* lexer;            // lexer is used to read tokens
     

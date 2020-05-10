@@ -4,6 +4,7 @@
 #include "AST/IntNode.h"
 #include "AST/ConstNode.h"
 #include "AST/CompoundNode.h"
+#include "AST/VarNode.h"
 
 Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()), MilaContext(), MilaBuilder(MilaContext), MilaModule("mila", MilaContext) {}
 
@@ -64,13 +65,31 @@ bool Parser::parseDeclaration(std::vector<ASTNode*>& result) {
     return parseDeclaration(result);
 }
 
+bool Parser::eat(Token token) {
+    if(lexer->getToken().getKind() != token.getKind()) {
+        std::stringstream ss;
+        ss << "Unexpected token " << lexer->getToken().getValue() << " expected: " << token.getValue();
+        return logError(ss.str());
+    } else {
+        return true;
+    }
+}
+
+bool Parser::readIdentifier(Token& token) {
+    Token identifier = lexer->getToken();
+    if(identifier.getKind() != Kind::tok_identifier)
+        return logError("Expected identifier");
+    token = identifier;
+    return true;
+}
+
 bool Parser::parseConstDeclaration(ASTNode*& result) {
     if(lexer->getToken().getKind() != Kind::tok_const)
         return logError("Expected const");
 
-    Token identifier = lexer->getToken();
-    if(identifier.getKind() != Kind::tok_identifier)
-        return logError("Expected identifier");
+    Token identifier;
+    if(!readIdentifier(identifier))
+        return false;
 
     if(lexer->getToken().getKind() != Kind::tok_init)
         return logError("Expected =");
@@ -84,6 +103,23 @@ bool Parser::parseConstDeclaration(ASTNode*& result) {
         return logError("Missing ;");
 
     return true;
+}
+
+bool Parser::parseVarDeclaration(ASTNode *&result) {
+    eat(Token(Kind::tok_var, "var"));
+
+    Token identifier;
+    if(!readIdentifier(identifier))
+        return false;
+    eat(Token(Kind::tok_type, ":"));
+
+    Token type;
+    if(!readIdentifier(type))
+        return false;
+
+    result = new VarNode(identifier.getValue(), type.getValue());
+
+    eat(Token(Kind::tok_div, ";"));
 }
 
 bool Parser::parseExpression(ASTNode*& result) {

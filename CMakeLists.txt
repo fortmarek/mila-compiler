@@ -20,7 +20,7 @@ include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 # Now build our tools
-add_executable(mila main.cpp Lexer.hpp Lexer.cpp Parser.hpp Parser.cpp AST/ASTNode.h AST/ProgramASTNode.cpp AST/ProgramASTNode.h Token.cpp Token.h AST/IntNode.cpp AST/IntNode.h AST/CompoundNode.cpp AST/CompoundNode.h AST/ASTNode.cpp AST/ConstNode.cpp AST/ConstNode.h)
+add_executable(mila main.cpp Lexer.hpp Lexer.cpp Parser.hpp Parser.cpp AST/ASTNode.h AST/ProgramASTNode.cpp AST/ProgramASTNode.h Token.cpp Token.h AST/IntNode.cpp AST/IntNode.h AST/CompoundNode.cpp AST/CompoundNode.h AST/ASTNode.cpp AST/ConstNode.cpp AST/ConstNode.h AST/VarNode.cpp AST/VarNode.h)
 
 # Find the libraries that correspond to the LLVM components
 # that we wish to use

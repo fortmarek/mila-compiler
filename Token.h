@@ -9,6 +9,7 @@
 
 enum Kind {
     tok_eof =           -1,
+    tok_unspecified = 0,
 
     // numbers and identifiers
             tok_identifier =    -2,
@@ -52,12 +53,14 @@ enum Kind {
 
     // 1-character operators
     tok_init = -32,
+    tok_type = -33,
 };
 
 
 class Token {
 public:
     Token(Kind kind, std::string value);
+    Token() = default;
     Kind getKind();
     std::string getValue();
 private:
