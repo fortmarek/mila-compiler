@@ -23,6 +23,7 @@ const Module& ASTWalker::generate(ASTNode* program) {
             Arg.setName("x");
     }
 
+    std::cout << "ola" << std::endl;
     program->walk(this);
 
     // create main function
