@@ -60,6 +60,8 @@ enum Kind {
     tok_multiplier = -37,
     tok_plus = -38,
     tok_minus = -39,
+    tok_division = -40,
+    tok_divider = -41,
 };
 
 

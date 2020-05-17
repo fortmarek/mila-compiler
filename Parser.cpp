@@ -8,6 +8,7 @@
 #include "AST/ProcedureNode.h"
 #include "AST/AssignNode.h"
 #include "AST/IdentifierNode.h"
+#include "AST/BinOpNode.h"
 
 Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()), MilaContext(), MilaBuilder(MilaContext), MilaModule("mila", MilaContext) {}
 
@@ -30,7 +31,7 @@ bool Parser::parseProgram() {
     if(identifierToken.getKind() != Kind::tok_identifier)
         return logError("program must be followed by identifier");
 
-    if(lexer->getToken().getKind() != Kind::tok_div)
+    if(lexer->getToken().getKind() != Kind::tok_divider)
         return logError("Missing ; after program declaration");
 
     std::vector<ASTNode*> declarations = {};
@@ -84,6 +85,7 @@ bool Parser::parseBlock(std::vector<ASTNode *> &result) {
 }
 
 bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
+    std::cout << "Parsing instruction" << std::endl;
     ASTNode* currentNodeResult = nullptr;
     Token identifier;
     if(!readIdentifier(identifier))
@@ -96,6 +98,8 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
         case Kind::tok_assign:
             if(!parseAssign(currentNodeResult, identifier))
                 return false;
+            std::cout << "parsed assign" << std::endl;
+            break;
         case Kind::tok_end:
             return true;
         default:
@@ -105,10 +109,13 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
     }
 
     result.push_back(currentNodeResult);
+    if(lexer->peekNextToken().getKind() == Kind::tok_end)
+        return true;
     return parseInstruction(result);
 }
 
 bool Parser::parseAssign(ASTNode *&result, Token identifier) {
+    std::cout << "Parsing assign" << std::endl;
     if(!eat(Token(Kind::tok_assign, ":=")))
         return false;
 
@@ -118,24 +125,25 @@ bool Parser::parseAssign(ASTNode *&result, Token identifier) {
 
     result = new AssignNode(identifier.getValue(), valueNode);
 
-    return eat(Token(Kind::tok_div, ";"));
+    return eat(Token(Kind::tok_divider, ";"));
 }
 
 bool Parser::parseProcedure(ASTNode *&result, Token identifier) {
+    std::cout << "Parsing procedure" << std::endl;
     if(!eat(Token(Kind::tok_left_paren, "(")))
         return false;
 
     switch(lexer->peekNextToken().getKind()) {
         case Kind::tok_right_paren:
             result = new ProcedureNode(lexer->getToken().getValue());
-            return eat(Token(Kind::tok_right_paren, ")")) && eat(Token(Kind::tok_div, ";"));
+            return eat(Token(Kind::tok_right_paren, ")")) && eat(Token(Kind::tok_divider, ";"));
         default:
             // TODO: Multiple parameters
             ASTNode* parameter = nullptr;
             if(!parseExpression(parameter))
                 return false;
             result = new ProcedureNode(identifier.getValue(), {parameter});
-            return eat(Token(Kind::tok_right_paren, ")")) && eat(Token(Kind::tok_div, ";"));
+            return eat(Token(Kind::tok_right_paren, ")")) && eat(Token(Kind::tok_divider, ";"));
     }
 }
 
@@ -168,12 +176,16 @@ bool Parser::parseConstDeclaration(ASTNode*& result) {
     if(lexer->getToken().getKind() != Kind::tok_init)
         return logError("Expected =");
 
-    ASTNode* value = nullptr;
-    if(!parseExpression(value))
-        return false;
-    result = new ConstNode(identifier.getValue(), value);
+    Token number = lexer->getToken();
+    std::cout << number.getValue() << std::endl;
+    if(number.getKind() != Kind::tok_number)
+        return logError("Expected number");
 
-    if(lexer->getToken().getKind() != Kind::tok_div)
+    auto numberNode = new IntNode(std::atoi(number.getValue().c_str()));
+
+    result = new ConstNode(identifier.getValue(), numberNode);
+
+    if(lexer->getToken().getKind() != Kind::tok_divider)
         return logError("Missing ;");
 
     return true;
@@ -195,22 +207,64 @@ bool Parser::parseVarDeclaration(ASTNode *&result) {
 
     result = new VarNode(identifier.getValue(), type.getValue());
 
-    return eat(Token(Kind::tok_div, ";"));
+    return eat(Token(Kind::tok_divider, ";"));
 }
 
 bool Parser::parseExpression(ASTNode*& result) {
-    // TODO: Reset of expression
-    return parseTerm(result);
+    std::cout << "Parsing expression" << std::endl;
+    ASTNode* termNode;
+    if(!parseTerm(termNode))
+        return false;
+    return parseRestExpression(termNode, result);
+}
+
+bool Parser::parseRestExpression(ASTNode* previousExpression, ASTNode *&result) {
+    switch(lexer->peekNextToken().getKind()) {
+        case Kind::tok_plus:
+            break;
+        case Kind::tok_minus:
+            break;
+        default:
+            result = previousExpression;
+            return true;
+    }
+
+    std::string operatorToken = lexer->getToken().getValue();
+    ASTNode* term;
+    if(!parseTerm(term))
+        return false;
+    ASTNode* binOp = new BinOpNode(previousExpression, term, operatorToken);
+    return parseRestExpression(binOp, result);
 }
 
 bool Parser::parseTerm(ASTNode*& result) {
-    // TODO: Rest of term
-    return parseFactor(result);
+    ASTNode* factorNode;
+    if(!parseFactor(factorNode))
+        return false;
+    return parseRestTerm(factorNode, result);
+}
+
+bool Parser::parseRestTerm(ASTNode *previousTerm, ASTNode *&result) {
+    switch(lexer->peekNextToken().getKind()) {
+        case Kind::tok_multiplier:
+            break;
+        case Kind::tok_division:
+            break;
+        default:
+            result = previousTerm;
+            return true;
+    }
+    std::string operatorToken = lexer->getToken().getValue();
+    ASTNode* factor;
+    parseFactor(factor);
+    ASTNode* binOp = new BinOpNode(previousTerm, factor, operatorToken);
+    return parseRestTerm(binOp, result);
 }
 
 bool Parser::parseFactor(ASTNode*& result) {
+    std::cout << "Parsing factor" << std::endl;
     switch(lexer->peekNextToken().getKind()) {
-        case Kind::tok_integer: {
+        case Kind::tok_number: {
             int value = std::atoi(lexer->getToken().getValue().c_str());
             result = new IntNode(value);
             return true;
@@ -218,6 +272,11 @@ bool Parser::parseFactor(ASTNode*& result) {
         case Kind::tok_identifier:
             result = new IdentifierNode(lexer->getToken().getValue());
             return true;
+        case Kind::tok_left_paren:
+            eat(Token(Kind::tok_left_paren, "("));
+            if(!parseExpression(result))
+                return false;
+            return eat(Token(Kind::tok_right_paren, ")"));
         default: {
             std::stringstream ss;
             ss << "Unexpected token " << lexer->getToken().getValue();
@@ -227,6 +286,7 @@ bool Parser::parseFactor(ASTNode*& result) {
 }
 
 bool Parser::Parse() {
+    std::cout << "Parsing program" << std::endl;
     return parseProgram();
 }
 

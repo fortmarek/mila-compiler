@@ -36,7 +36,7 @@ Token Lexer::token(const std::string &str) {
             {"program", Kind::tok_program},
             {"const", Kind::tok_const},
             {"var", Kind::tok_var},
-            {";", Kind::tok_div},
+            {";", Kind::tok_divider},
             {"=", Kind::tok_init},
             {":=", Kind::tok_assign},
             {":", Kind::tok_type},
@@ -45,8 +45,10 @@ Token Lexer::token(const std::string &str) {
             {"(", Kind::tok_left_paren},
             {")", Kind::tok_right_paren},
             {"*", Kind::tok_multiplier},
+            {"\\", Kind::tok_division},
             {"+", Kind::tok_plus},
             {"-", Kind::tok_minus},
+            {".", Kind::tok_dot},
     };
 
     auto token = kindMap.find(str);
@@ -71,7 +73,7 @@ Token Lexer::digitToken() {
     while(isDigit(peek()))
         get();
     std::string identifier(startOfToken, currentPtr);
-    return Token(Kind::tok_integer, identifier);
+    return Token(Kind::tok_number, identifier);
 }
 
 Token Lexer::operatorToken() {
@@ -84,7 +86,7 @@ Token Lexer::operatorToken() {
 }
 
 bool Lexer::isOperator(char character) {
-    std::regex re("[:=|&+-*()]");
+    std::regex re("[:=|&+*()-.]");
     std::cmatch m;
     return std::regex_search(&character, m, re);
 }
@@ -104,7 +106,7 @@ Token Lexer::lexToken() {
 
     if(peek() == ';') {
         get();
-        return Token(Kind::tok_div, ";");
+        return Token(Kind::tok_divider, ";");
     }
 
     return Token(Kind::tok_end, "");

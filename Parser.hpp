@@ -43,6 +43,8 @@ private:
     bool parseAssign(ASTNode *&result, Token identifier);
     bool parseProcedure(ASTNode *&result, Token identifier);
     bool parseExpression(ASTNode*& result);
+    bool parseRestExpression(ASTNode* previousExpression, ASTNode*& result);
+    bool parseRestTerm(ASTNode* previousTerm, ASTNode*& result);
     bool parseTerm(ASTNode*& result);
     bool parseFactor(ASTNode*& result);
     bool eat(Token token);
