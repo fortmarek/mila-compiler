@@ -10,3 +10,11 @@ const void ConstNode::print() {
     std::cout << "Const node: " << std::endl;
     value->print();
 }
+
+std::string ConstNode::getIdentifier() {
+    return identifier;
+}
+
+ASTNode* ConstNode::getValue() {
+    return value;
+}

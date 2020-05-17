@@ -1,4 +1,5 @@
 #include "Parser.hpp"
+#include "ASTWalker.h"
 
 //Use tutorials in: https://llvm.org/docs/tutorial/
 
@@ -10,7 +11,9 @@ int main (int argc, char *argv[]) {
         return 1;
     }
 
-    parser.Generate().print(outs(), nullptr);
+    auto walker = new ASTWalker();
+
+    walker->generate(parser.getProgram()).print(outs(), nullptr);
 
     return 0;
 }

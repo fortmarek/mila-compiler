@@ -10,10 +10,10 @@
 #include "AST/IdentifierNode.h"
 #include "AST/BinOpNode.h"
 
-Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()), MilaContext(), MilaBuilder(MilaContext), MilaModule("mila", MilaContext) {}
+Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()) {}
 
-Parser::Parser(const Parser &parser) : MilaContext(), MilaBuilder(MilaContext), MilaModule("mila", MilaContext) {
-    lexer = parser.lexer;
+ASTNode* Parser::getProgram() {
+    return program;
 }
 
 bool Parser::logError(const std::string &reason) {
@@ -45,11 +45,14 @@ bool Parser::parseProgram() {
         return false;
     auto instructionsNode = new CompoundNode(instructions);
 
-    auto programNode = ProgramASTNode(identifierToken.getValue(), declarationsNode, instructionsNode);
+    auto programNode = new ProgramASTNode(identifierToken.getValue(), declarationsNode, instructionsNode);
 
-    programNode.print();
+    programNode->print();
 
-    eat(Token(Kind::tok_dot, "."));
+    if(!eat(Token(Kind::tok_dot, ".")))
+        return false;
+
+    program = programNode;
 
     return true;
 }
@@ -288,38 +291,6 @@ bool Parser::parseFactor(ASTNode*& result) {
 bool Parser::Parse() {
     std::cout << "Parsing program" << std::endl;
     return parseProgram();
-}
-
-const Module& Parser::Generate() {
-
-    // create writeln function
-    {
-      std::vector<Type*> Ints(1, Type::getInt32Ty(MilaContext));
-      FunctionType * FT = FunctionType::get(Type::getInt32Ty(MilaContext), Ints, false);
-      Function * F = Function::Create(FT, Function::ExternalLinkage, "writeln", MilaModule);
-      for (auto & Arg : F->args())
-          Arg.setName("x");
-    }
-
-    // create main function
-    {
-      FunctionType * FT = FunctionType::get(Type::getInt32Ty(MilaContext), false);
-      Function * MainFunction = Function::Create(FT, Function::ExternalLinkage, "main", MilaModule);
-
-      // block
-      BasicBlock * BB = BasicBlock::Create(MilaContext, "entry", MainFunction);
-      MilaBuilder.SetInsertPoint(BB);
-
-      // call writeln with value from lexel
-      MilaBuilder.CreateCall(MilaModule.getFunction("writeln"), {
-        ConstantInt::get(MilaContext, APInt(32, lexer->numVal()))
-      });
-
-      // return 0
-      MilaBuilder.CreateRet(ConstantInt::get(Type::getInt32Ty(MilaContext), 0));
-    }
-
-    return this->MilaModule;
 }
 
 Token Parser::getNextToken() {

@@ -12,6 +12,8 @@ class ProgramASTNode: public ASTNode {
 public:
     explicit ProgramASTNode(std::string name, ASTNode* declarations, ASTNode* main);
     ProgramASTNode(const ProgramASTNode &programNode);
+    ASTNode* getDeclarations();
+    ASTNode* getMain();
     const void print() override;
 private:
     std::string name;

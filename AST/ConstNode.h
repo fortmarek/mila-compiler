@@ -11,6 +11,8 @@ class ConstNode: public ASTNode {
 public:
     explicit ConstNode(std::string identifier, ASTNode* value);
     const void print() override;
+    ASTNode* getValue();
+    std::string getIdentifier();
 private:
     std::string identifier;
     ASTNode* value;

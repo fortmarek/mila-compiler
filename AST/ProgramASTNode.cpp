@@ -27,3 +27,11 @@ const void ProgramASTNode::print() {
     declarations->print();
     main->print();
 }
+
+ASTNode* ProgramASTNode::getDeclarations() {
+    return declarations;
+}
+
+ASTNode* ProgramASTNode::getMain() {
+    return main;
+}

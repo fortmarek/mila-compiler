@@ -11,3 +11,7 @@ const void CompoundNode::print() {
     for(auto const& child: children)
         child->print();
 }
+
+std::vector<ASTNode*> CompoundNode::getChildren() {
+    return children;
+}
