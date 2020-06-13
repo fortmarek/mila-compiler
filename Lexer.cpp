@@ -56,6 +56,8 @@ Token Lexer::token(const std::string &str) {
             {"-", Kind::tok_minus},
             {".", Kind::tok_dot},
             {"mod", Kind::tok_mod},
+            {"if", Kind::tok_if},
+            {""}
 
     };
 

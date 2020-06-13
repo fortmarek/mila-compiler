@@ -1,0 +1,40 @@
+1: Program -> Dekl SložPříkaz
+2: Dekl -> DeklKonst Dekl 
+3: Dekl -> DeklProm Dekl 
+4: Dekl -> ε
+5: DeklKonst -> const ident = číslo ZbDeklKonst ;
+6: ZbDeklKonst -> , ident = číslo ZbDeklKonst 
+7: ZbDeklKonst -> ε
+8: DeklProm -> var ident ZbDeklProm ;
+9: ZbDeklProm -> , ident ZbDeklProm
+10:ZbDeklProm -> ε 
+11: SložPříkaz -> begin Příkaz ZbPříkazů end
+12: ZbPříkazů -> ; Příkaz ZbPříkazů
+13:ZbPříkazů->ε
+14:Příkaz -> ident := Výraz
+15:Příkaz -> write Výraz
+16:Příkaz -> if Podmínka then Příkaz  PartElse
+17:Příkaz -> while Podmínka do Příkaz 
+18:Příkaz -> SložPříkaz
+19:Příkaz ->ε
+20: PartElse -> else Příkaz 
+21: PartElse -> ε 
+22: Podmínka -> Výraz RelOp Výraz
+23:RelOp -> =
+24:RelOp -> <>
+25:RelOp -> <
+26:RelOp -> >
+27:RelOp -> <=
+28:RelOp -> >=
+29:Výraz -> Term ZbVýrazu
+30:Výraz -> - Term ZbVýrazu
+31:ZbVýrazu -> + Term ZbVýrazu
+32:ZbVýrazu -> - Term ZbVýrazu
+33:ZbVýrazu ->ε
+34:Term -> Faktor ZbTermu
+35:ZbTermu -> * Faktor ZbTermu
+36:ZbTermu -> / Faktor ZbTermu
+37:ZbTermu -> ε
+38:Faktor -> ident
+39:Faktor -> číslo 
+40:Faktor  -> ( Výraz ) 
