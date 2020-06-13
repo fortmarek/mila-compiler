@@ -15,6 +15,10 @@ std::vector<ASTNode*> ProcedureNode::getParameters() {
     return parameters;
 }
 
+std::string ProcedureNode::getIdentifier() {
+    return identifier;
+}
+
 const void ProcedureNode::print() {
     std::cout << "ProcedureNode: " << std::endl;
     std::cout << identifier << std::endl;

@@ -26,6 +26,12 @@ bool Lexer::isDigit(char character) {
 }
 
 bool Lexer::isIdentifier(char character) {
+    std::regex re("[a-zA-Z0-9]");
+    std::cmatch m;
+    return std::regex_search(&character, m, re);
+}
+
+bool Lexer::isFirstIdentifierChar(char character) {
     std::regex re("[a-zA-Z]");
     std::cmatch m;
     return std::regex_search(&character, m, re);
@@ -49,6 +55,8 @@ Token Lexer::token(const std::string &str) {
             {"+", Kind::tok_plus},
             {"-", Kind::tok_minus},
             {".", Kind::tok_dot},
+            {"mod", Kind::tok_mod},
+
     };
 
     auto token = kindMap.find(str);
@@ -98,7 +106,7 @@ Token Lexer::lexToken() {
     if(isOperator(peek()))
         return operatorToken();
 
-    if(isIdentifier(peek()))
+    if(isFirstIdentifierChar(peek()))
         return identifierToken();
 
     if(isDigit(peek()))

@@ -26,6 +26,8 @@ class IntNode;
 class MainNode;
 class ProcedureNode;
 class IdentifierNode;
+class AssignNode;
+class BinOpNode;
 
 class ASTWalker {
 public:
@@ -40,11 +42,16 @@ public:
     llvm::Value* visit(MainNode* mainNode);
     llvm::Value* visit(ProcedureNode* procedureNode);
     llvm::Value* visit(IdentifierNode* identifierNode);
+    llvm::Value* visit(AssignNode* assignNode);
+    llvm::Value* visit(BinOpNode* binOpNode);
 private:
     llvm::LLVMContext milaContext;   // llvm context
     llvm::IRBuilder<> milaBuilder;   // llvm builder
     llvm::Module milaModule;         // llvm module
     std::map<std::string, llvm::Value*> symbolTable;
+    llvm::Value* loadValue(const std::string& identifier);
+    llvm::Value* loadValue(ASTNode* node);
+    static llvm::AllocaInst *createEntryBlockAlloca(llvm::Function *function, llvm::Type *ty, const std::string &name);
 };
 
 

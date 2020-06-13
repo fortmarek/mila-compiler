@@ -39,12 +39,12 @@ bool Parser::parseProgram() {
 
     if(!parseDeclaration(declarations))
         return false;
-    auto declarationsNode = new CompoundNode(declarations);
+    auto declarationsNode = new CompoundNode({});
 
-    std::vector<ASTNode*> instructions;
-    if(!parseBlock(instructions))
+//    std::vector<ASTNode*> instructions;
+    if(!parseBlock(declarations))
         return false;
-    auto mainNode = new MainNode(instructions);
+    auto mainNode = new MainNode(declarations);
 
     auto programNode = new ProgramASTNode(identifierToken.getValue(), declarationsNode, mainNode);
 
@@ -198,6 +198,17 @@ bool Parser::parseConstDeclaration(ASTNode*& result) {
 bool Parser::parseVarDeclaration(ASTNode *&result) {
     if(!eat(Token(Kind::tok_var, "var")))
         return false;
+    std::vector<ASTNode*> varDeclarations = {};
+    if(!parseRestVarDeclaration(varDeclarations))
+        return false;
+
+    result = new CompoundNode(varDeclarations);
+    return true;
+}
+
+bool Parser::parseRestVarDeclaration(std::vector<ASTNode *>&result) {
+    if(lexer->peekNextToken().getKind() != Kind::tok_identifier)
+        return true;
 
     Token identifier;
     if(!readIdentifier(identifier))
@@ -209,9 +220,14 @@ bool Parser::parseVarDeclaration(ASTNode *&result) {
     if(!readIdentifier(type))
         return false;
 
-    result = new VarNode(identifier.getValue(), type.getValue());
+    result.push_back(new VarNode(identifier.getValue(), type.getValue()));
 
-    return eat(Token(Kind::tok_divider, ";"));
+    if(!eat(Token(Kind::tok_divider, ";")))
+        return false;
+
+    parseRestVarDeclaration(result);
+
+    return true;
 }
 
 bool Parser::parseExpression(ASTNode*& result) {
@@ -227,6 +243,8 @@ bool Parser::parseRestExpression(ASTNode* previousExpression, ASTNode *&result) 
         case Kind::tok_plus:
             break;
         case Kind::tok_minus:
+            break;
+        case Kind::tok_mod:
             break;
         default:
             result = previousExpression;

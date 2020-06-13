@@ -11,3 +11,7 @@ const void VarNode::print() {
     std::cout << "identifier: " << identifier << std::endl;
     std::cout << "type: " << type << std::endl;
 }
+
+std::string VarNode::getIdentifier() {
+    return identifier;
+}

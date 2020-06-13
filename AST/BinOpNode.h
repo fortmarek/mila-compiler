@@ -10,6 +10,9 @@
 class BinOpNode: public ASTNode {
 public:
     BinOpNode(ASTNode* leftOperator, ASTNode* rightOperator, std::string operationToken);
+    std::string getOperationToken();
+    ASTNode* getLeftOperator();
+    ASTNode* getRightOperator();
     const void print() override;
 private:
     std::string operationToken;

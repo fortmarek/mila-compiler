@@ -10,6 +10,8 @@
 class AssignNode: public ASTNode {
 public:
     AssignNode(std::string identifier, ASTNode* valueNode);
+    std::string getIdentifier();
+    ASTNode* getValue();
     const void print() override;
 private:
     std::string identifier;

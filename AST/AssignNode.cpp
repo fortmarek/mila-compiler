@@ -11,3 +11,11 @@ const void AssignNode::print() {
     std::cout << "\tidentifier: " << identifier << std::endl;
     valueNode->print();
 }
+
+std::string AssignNode::getIdentifier() {
+    return identifier;
+}
+
+ASTNode* AssignNode::getValue() {
+    return valueNode;
+}

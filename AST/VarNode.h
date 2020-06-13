@@ -10,6 +10,7 @@
 class VarNode: public ASTNode {
 public:
     VarNode(std::string identifier, std::string type);
+    std::string getIdentifier();
     const void print() override;
 private:
     std::string identifier;

@@ -14,6 +14,18 @@ BinOpNode::BinOpNode(
         operationToken(std::move(operationToken))
 {}
 
+std::string BinOpNode::getOperationToken() {
+    return operationToken;
+}
+
+ASTNode* BinOpNode::getLeftOperator() {
+    return leftOperator;
+}
+
+ASTNode* BinOpNode::getRightOperator() {
+    return rightOperator;
+}
+
 const void BinOpNode::print() {
     std::cout << "BinOpNode: " << std::endl;
     std::cout << operationToken << std::endl;
