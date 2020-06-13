@@ -10,6 +10,7 @@
 #include "AST/IdentifierNode.h"
 #include "AST/BinOpNode.h"
 #include "AST/MainNode.h"
+#include "AST/IfElseNode.h"
 
 Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()) {}
 
@@ -48,7 +49,7 @@ bool Parser::parseProgram() {
 
     auto programNode = new ProgramASTNode(identifierToken.getValue(), declarationsNode, mainNode);
 
-//    programNode->print();
+    programNode->print();
 
     if(!eat(Token(Kind::tok_dot, ".")))
         return false;
@@ -91,31 +92,104 @@ bool Parser::parseBlock(std::vector<ASTNode *> &result) {
 bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
 //    std::cout << "Parsing instruction" << std::endl;
     ASTNode* currentNodeResult = nullptr;
-    Token identifier;
-    if(!readIdentifier(identifier))
-        return false;
     switch(lexer->peekNextToken().getKind()) {
-        case Kind::tok_left_paren:
-            if(!parseProcedure(currentNodeResult, identifier))
+        case Kind::tok_if:
+            if(!parseIfBlock(currentNodeResult))
                 return false;
             break;
-        case Kind::tok_assign:
-            if(!parseAssign(currentNodeResult, identifier))
-                return false;
-//            std::cout << "parsed assign" << std::endl;
-            break;
-        case Kind::tok_end:
-            return true;
         default:
-            std::stringstream ss;
-            ss << "Unexpected token " << lexer->peekNextToken().getValue() << " " << lexer->peekNextToken().getKind();
-            return logError(ss.str());
+            std::cout << "hmm" << std::endl;
+            std::cout << lexer->peekNextToken().getValue() << std::endl;
+            Token identifier;
+            if(!readIdentifier(identifier))
+                return false;
+            std::cout << "hmm" << std::endl;
+            std::cout << identifier.getValue() << std::endl;
+            switch(lexer->peekNextToken().getKind()) {
+                case Kind::tok_left_paren:
+                    if(!parseProcedure(currentNodeResult, identifier))
+                        return false;
+                    break;
+                case Kind::tok_assign:
+                    if(!parseAssign(currentNodeResult, identifier))
+                        return false;
+//            std::cout << "parsed assign" << std::endl;
+                    break;
+                case Kind::tok_end:
+                    return true;
+                default:
+                    std::stringstream ss;
+                    ss << "Unexpected token " << lexer->peekNextToken().getValue() << " " << lexer->peekNextToken().getKind();
+                    return logError(ss.str());
+            }
     }
 
     result.push_back(currentNodeResult);
-    if(lexer->peekNextToken().getKind() == Kind::tok_end)
-        return true;
-    return parseInstruction(result);
+    switch(lexer->peekNextToken().getKind()) {
+        case Kind::tok_end:
+            return true;
+        case Kind::tok_else:
+            return true;
+        default:
+            return parseInstruction(result);
+    }
+}
+
+bool Parser::parseIfBlock(ASTNode *&result) {
+    if(!eat(Token(Kind::tok_if, "if")))
+        return false;
+    ASTNode* conditionNode;
+    if(!parseCondition(conditionNode))
+        return false;
+
+    if(!eat(Token(Kind::tok_then, "then")))
+        return false;
+
+    std::vector<ASTNode*> instructions = {};
+    if(!parseInstruction(instructions))
+        return false;
+
+    ASTNode* ifNode = new CompoundNode(instructions);
+
+    ASTNode* elseNode = nullptr;
+    if(lexer->peekNextToken().getKind() == Kind::tok_else) {
+        if(!eat(Token(Kind::tok_else, "else")))
+            return false;
+
+        std::vector<ASTNode*> elseInstructions = {};
+        if(!parseInstruction(elseInstructions))
+            return false;
+        elseNode = new CompoundNode(elseInstructions);
+    }
+
+    result = new IfElseNode(conditionNode, ifNode, elseNode);
+
+    return true;
+}
+
+bool Parser::parseCondition(ASTNode *&result) {
+    ASTNode* leftExpression;
+    ASTNode* rightExpression;
+
+    if(!parseExpression(leftExpression))
+        return false;
+
+    std::string relationOperator;
+    switch(lexer->peekNextToken().getKind()) {
+        case Kind::tok_init:
+            eat(Token(Kind::tok_init, "="));
+            relationOperator = "=";
+            break;
+        default:
+            return logError("Expected relation operator");
+    }
+
+    if(!parseExpression(rightExpression))
+        return false;
+
+    result = new BinOpNode(leftExpression, rightExpression, relationOperator);
+
+    return true;
 }
 
 bool Parser::parseAssign(ASTNode *&result, Token identifier) {

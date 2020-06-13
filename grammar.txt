@@ -8,18 +8,19 @@
 8: DeklProm -> var ident ZbDeklProm ;
 9: ZbDeklProm -> , ident ZbDeklProm
 10:ZbDeklProm -> ε 
-11: SložPříkaz -> begin Příkaz ZbPříkazů end
-12: ZbPříkazů -> ; Příkaz ZbPříkazů
+11: SložPříkaz -> begin Instruction ZbPříkazů end
+12: ZbPříkazů -> ; Instruction ZbPříkazů
 13:ZbPříkazů->ε
-14:Příkaz -> ident := Výraz
-15:Příkaz -> write Výraz
-16:Příkaz -> if Podmínka then Příkaz  PartElse
-17:Příkaz -> while Podmínka do Příkaz 
-18:Příkaz -> SložPříkaz
-19:Příkaz ->ε
-20: PartElse -> else Příkaz 
-21: PartElse -> ε 
-22: Podmínka -> Výraz RelOp Výraz
+14:Instruction -> ident := Výraz
+15:Instruction -> write Výraz
+16:Instruction -> IfBlock
+17:Instruction -> while Condition do Instruction 
+18:Instruction -> SložPříkaz
+19:Instruction ->ε
+IfBlock -> if Condition then Instruction Else
+20: Else -> else Instruction 
+21: Else -> ε 
+22: Condition -> Výraz RelOp Výraz
 23:RelOp -> =
 24:RelOp -> <>
 25:RelOp -> <

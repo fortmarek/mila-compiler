@@ -57,8 +57,10 @@ Token Lexer::token(const std::string &str) {
             {".", Kind::tok_dot},
             {"mod", Kind::tok_mod},
             {"if", Kind::tok_if},
-            {""}
-
+            {"then", Kind::tok_then},
+            {"while", Kind::tok_while},
+            {"do", Kind::tok_do},
+            {"else", Kind::tok_else},
     };
 
     auto token = kindMap.find(str);
@@ -125,11 +127,11 @@ Token Lexer::lexToken() {
 Token Lexer::getToken() {
     Token currentToken = nextToken;
     nextToken = lexToken();
-//    std::cout << currentToken.getValue() << std::endl;
-//    std::cout << currentToken.getKind() << std::endl;
-//    std::cout << nextToken.getValue() << std::endl;
-//    std::cout << nextToken.getKind() << std::endl;
-//    std::cout << "-----" << std::endl;
+    std::cout << currentToken.getValue() << std::endl;
+    std::cout << currentToken.getKind() << std::endl;
+    std::cout << nextToken.getValue() << std::endl;
+    std::cout << nextToken.getKind() << std::endl;
+    std::cout << "-----" << std::endl;
     return currentToken;
 }
 
