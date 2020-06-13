@@ -10,7 +10,7 @@
 
 class CompoundNode: public ASTNode {
 public:
-    CompoundNode(std::vector<ASTNode*>);
+    explicit CompoundNode(std::vector<ASTNode*> children);
     std::vector<ASTNode*> getChildren();
     const void print() override;
 private:

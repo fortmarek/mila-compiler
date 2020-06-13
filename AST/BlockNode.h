@@ -6,15 +6,9 @@
 #define SIMPLEFRONTEND_BLOCKNODE_H
 
 #include <vector>
-#include "ASTNode.h"
+#include "CompoundNode.h"
 
-class BlockNode: public ASTNode {
-public:
-    BlockNode(std::vector<ASTNode*> instructions);
-    const void print() override;
-private:
-    std::vector<ASTNode*> instructions;
-};
+//class BlockNode: public CompoundNode {};
 
 
 #endif //SIMPLEFRONTEND_BLOCKNODE_H

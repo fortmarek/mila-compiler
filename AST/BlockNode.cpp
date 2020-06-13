@@ -4,10 +4,10 @@
 
 #include "BlockNode.h"
 
-BlockNode::BlockNode(std::vector<ASTNode *> instructions) :instructions(std::move(instructions)) {}
-
-const void BlockNode::print() {
-    std::cout << "BlockNode: " << std::endl;
-    for(auto const& instruction: instructions)
-        instruction->print();
-}
+//BlockNode::BlockNode(std::vector<ASTNode *> instructions) :instructions(std::move(instructions)) {}
+//
+//const void BlockNode::print() {
+//    std::cout << "BlockNode: " << std::endl;
+//    for(auto const& instruction: instructions)
+//        instruction->print();
+//}

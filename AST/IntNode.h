@@ -11,6 +11,7 @@ class IntNode: public ASTNode {
 public:
     explicit IntNode(int value);
     const void print() override;
+    int getValue();
 private:
     int value;
 };

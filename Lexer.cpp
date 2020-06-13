@@ -115,11 +115,11 @@ Token Lexer::lexToken() {
 Token Lexer::getToken() {
     Token currentToken = nextToken;
     nextToken = lexToken();
-    std::cout << currentToken.getValue() << std::endl;
-    std::cout << currentToken.getKind() << std::endl;
-    std::cout << nextToken.getValue() << std::endl;
-    std::cout << nextToken.getKind() << std::endl;
-    std::cout << "-----" << std::endl;
+//    std::cout << currentToken.getValue() << std::endl;
+//    std::cout << currentToken.getKind() << std::endl;
+//    std::cout << nextToken.getValue() << std::endl;
+//    std::cout << nextToken.getKind() << std::endl;
+//    std::cout << "-----" << std::endl;
     return currentToken;
 }
 

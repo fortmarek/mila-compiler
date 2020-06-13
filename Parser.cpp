@@ -9,6 +9,7 @@
 #include "AST/AssignNode.h"
 #include "AST/IdentifierNode.h"
 #include "AST/BinOpNode.h"
+#include "AST/MainNode.h"
 
 Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()) {}
 
@@ -43,11 +44,11 @@ bool Parser::parseProgram() {
     std::vector<ASTNode*> instructions;
     if(!parseBlock(instructions))
         return false;
-    auto instructionsNode = new CompoundNode(instructions);
+    auto mainNode = new MainNode(instructions);
 
-    auto programNode = new ProgramASTNode(identifierToken.getValue(), declarationsNode, instructionsNode);
+    auto programNode = new ProgramASTNode(identifierToken.getValue(), declarationsNode, mainNode);
 
-    programNode->print();
+//    programNode->print();
 
     if(!eat(Token(Kind::tok_dot, ".")))
         return false;
@@ -88,7 +89,7 @@ bool Parser::parseBlock(std::vector<ASTNode *> &result) {
 }
 
 bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
-    std::cout << "Parsing instruction" << std::endl;
+//    std::cout << "Parsing instruction" << std::endl;
     ASTNode* currentNodeResult = nullptr;
     Token identifier;
     if(!readIdentifier(identifier))
@@ -101,7 +102,7 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
         case Kind::tok_assign:
             if(!parseAssign(currentNodeResult, identifier))
                 return false;
-            std::cout << "parsed assign" << std::endl;
+//            std::cout << "parsed assign" << std::endl;
             break;
         case Kind::tok_end:
             return true;
@@ -118,7 +119,7 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
 }
 
 bool Parser::parseAssign(ASTNode *&result, Token identifier) {
-    std::cout << "Parsing assign" << std::endl;
+//    std::cout << "Parsing assign" << std::endl;
     if(!eat(Token(Kind::tok_assign, ":=")))
         return false;
 
@@ -132,7 +133,7 @@ bool Parser::parseAssign(ASTNode *&result, Token identifier) {
 }
 
 bool Parser::parseProcedure(ASTNode *&result, Token identifier) {
-    std::cout << "Parsing procedure" << std::endl;
+//    std::cout << "Parsing procedure" << std::endl;
     if(!eat(Token(Kind::tok_left_paren, "(")))
         return false;
 
@@ -180,7 +181,7 @@ bool Parser::parseConstDeclaration(ASTNode*& result) {
         return logError("Expected =");
 
     Token number = lexer->getToken();
-    std::cout << number.getValue() << std::endl;
+//    std::cout << number.getValue() << std::endl;
     if(number.getKind() != Kind::tok_number)
         return logError("Expected number");
 
@@ -214,7 +215,7 @@ bool Parser::parseVarDeclaration(ASTNode *&result) {
 }
 
 bool Parser::parseExpression(ASTNode*& result) {
-    std::cout << "Parsing expression" << std::endl;
+//    std::cout << "Parsing expression" << std::endl;
     ASTNode* termNode;
     if(!parseTerm(termNode))
         return false;
@@ -265,7 +266,7 @@ bool Parser::parseRestTerm(ASTNode *previousTerm, ASTNode *&result) {
 }
 
 bool Parser::parseFactor(ASTNode*& result) {
-    std::cout << "Parsing factor" << std::endl;
+//    std::cout << "Parsing factor" << std::endl;
     switch(lexer->peekNextToken().getKind()) {
         case Kind::tok_number: {
             int value = std::atoi(lexer->getToken().getValue().c_str());
@@ -289,7 +290,7 @@ bool Parser::parseFactor(ASTNode*& result) {
 }
 
 bool Parser::Parse() {
-    std::cout << "Parsing program" << std::endl;
+//    std::cout << "Parsing program" << std::endl;
     return parseProgram();
 }
 

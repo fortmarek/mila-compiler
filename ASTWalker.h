@@ -22,6 +22,8 @@ class ProgramASTNode;
 class CompoundNode;
 class ConstNode;
 class VarNode;
+class IntNode;
+class MainNode;
 
 class ASTWalker {
 public:
@@ -32,10 +34,13 @@ public:
     llvm::Value* visit(CompoundNode* compound);
     llvm::Value* visit(ConstNode* constNode);
     llvm::Value* visit(VarNode* varNode);
+    llvm::Value* visit(IntNode* intNode);
+    llvm::Value* visit(MainNode* mainNode);
 private:
-    llvm::LLVMContext MilaContext;   // llvm context
-    llvm::IRBuilder<> MilaBuilder;   // llvm builder
-    llvm::Module MilaModule;         // llvm module
+    llvm::LLVMContext milaContext;   // llvm context
+    llvm::IRBuilder<> milaBuilder;   // llvm builder
+    llvm::Module milaModule;         // llvm module
+    std::map<std::string, llvm::Value*> symbolTable;
 };
 
 

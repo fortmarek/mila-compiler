@@ -8,48 +8,64 @@
 #include "AST/CompoundNode.h"
 #include "AST/ConstNode.h"
 #include "AST/VarNode.h"
+#include "AST/IntNode.h"
+#include "AST/MainNode.h"
 #include "Parser.hpp"
 
-ASTWalker::ASTWalker() :MilaContext(), MilaBuilder(MilaContext), MilaModule("mila", MilaContext) {}
+ASTWalker::ASTWalker() :milaContext(), milaBuilder(milaContext), milaModule("mila", milaContext) {}
 
 const Module& ASTWalker::generate(ASTNode* program) {
 
     // create writeln function
     {
-        std::vector<Type*> Ints(1, Type::getInt32Ty(MilaContext));
-        FunctionType * FT = FunctionType::get(Type::getInt32Ty(MilaContext), Ints, false);
-        Function * F = Function::Create(FT, Function::ExternalLinkage, "writeln", MilaModule);
+        std::vector<Type*> Ints(1, Type::getInt32Ty(milaContext));
+        FunctionType * FT = FunctionType::get(Type::getInt32Ty(milaContext), Ints, false);
+        Function * F = Function::Create(FT, Function::ExternalLinkage, "writeln", milaModule);
         for (auto & Arg : F->args())
             Arg.setName("x");
     }
 
-    std::cout << "ola" << std::endl;
+    // create readln function
+    {
+        std::vector<Type*> Ints(1, Type::getInt32Ty(milaContext));
+        FunctionType * FT = FunctionType::get(milaBuilder.getVoidTy(), Ints, false);
+        Function * F = Function::Create(FT, Function::ExternalLinkage, "readln", milaModule);
+        for (auto & Arg : F->args())
+            Arg.setName("x");
+    }
+
     program->walk(this);
 
-    // create main function
-//    {
-//        FunctionType * FT = FunctionType::get(Type::getInt32Ty(MilaContext), false);
-//        Function * MainFunction = Function::Create(FT, Function::ExternalLinkage, "main", MilaModule);
-//
-//        // block
-//        BasicBlock * BB = BasicBlock::Create(MilaContext, "entry", MainFunction);
-//        MilaBuilder.SetInsertPoint(BB);
-//
-//        // call writeln with value from lexel
-//        MilaBuilder.CreateCall(MilaModule.getFunction("writeln"), {
-//                ConstantInt::get(MilaContext, APInt(32, lexer->numVal()))
-//        });
-//
-//        // return 0
-//        MilaBuilder.CreateRet(ConstantInt::get(Type::getInt32Ty(MilaContext), 0));
-//    }
-
-    return this->MilaModule;
+    return this->milaModule;
 }
 
 llvm::Value* ASTWalker::visit(ProgramASTNode* program) {
     program->getDeclarations()->walk(this);
-//    program->getMain()->walk(this);
+    program->getMain()->walk(this);
+    return nullptr;
+}
+
+llvm::Value* ASTWalker::visit(MainNode *mainNode) {
+    FunctionType * FT = FunctionType::get(Type::getInt32Ty(milaContext), false);
+    Function * MainFunction = Function::Create(FT, Function::ExternalLinkage, "main", milaModule);
+
+    // block
+    BasicBlock * BB = BasicBlock::Create(milaContext, "entry", MainFunction);
+    milaBuilder.SetInsertPoint(BB);
+
+    milaBuilder.CreateCall(milaModule.getFunction("writeln"), {
+        ConstantInt::get(milaContext, APInt(32, 42))
+    });
+
+    visit(dynamic_cast<CompoundNode*>(mainNode));
+
+    // call writeln with value from lexel
+//        milaBuilder.CreateCall(milaModule.getFunction("writeln"), {
+//                ConstantInt::get(milaContext, APInt(32, lexer->numVal()))
+//        });
+
+    // return 0
+    milaBuilder.CreateRet(ConstantInt::get(Type::getInt32Ty(milaContext), 0));
     return nullptr;
 }
 
@@ -61,9 +77,15 @@ llvm::Value* ASTWalker::visit(CompoundNode *compound) {
 
 llvm::Value* ASTWalker::visit(ConstNode *constNode) {
     llvm::Value* value = constNode->getValue()->walk(this);
-    MilaBuilder.CreateLoad(value, constNode->getIdentifier());
+    symbolTable[constNode->getIdentifier()] = value;
+    milaBuilder.CreateFAdd(value, value, "addtmp");
+    return nullptr;
+}
+
+llvm::Value* ASTWalker::visit(IntNode *intNode) {
+    return llvm::ConstantInt::get(milaContext, llvm::APInt(64, intNode->getValue()));
 }
 
 llvm::Value* ASTWalker::visit(VarNode *varNode) {
-
+    return nullptr;
 }

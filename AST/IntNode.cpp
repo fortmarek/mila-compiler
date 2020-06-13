@@ -10,3 +10,7 @@ const void IntNode::print() {
     std::cout << "Integer node:" << std::endl;
     std::cout << "\tvalue: " << value << std::endl;
 }
+
+int IntNode::getValue() {
+    return value;
+}
