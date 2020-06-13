@@ -10,6 +10,7 @@
 class IdentifierNode: public ASTNode {
 public:
     explicit IdentifierNode(std::string identifier);
+    std::string getIdentifier();
     const void print() override;
 private:
     std::string identifier;

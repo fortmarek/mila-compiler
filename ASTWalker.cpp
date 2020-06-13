@@ -10,6 +10,8 @@
 #include "AST/VarNode.h"
 #include "AST/IntNode.h"
 #include "AST/MainNode.h"
+#include "AST/ProcedureNode.h"
+#include "AST/IdentifierNode.h"
 #include "Parser.hpp"
 
 ASTWalker::ASTWalker() :milaContext(), milaBuilder(milaContext), milaModule("mila", milaContext) {}
@@ -79,13 +81,33 @@ llvm::Value* ASTWalker::visit(ConstNode *constNode) {
     llvm::Value* value = constNode->getValue()->walk(this);
     symbolTable[constNode->getIdentifier()] = value;
     milaBuilder.CreateFAdd(value, value, "addtmp");
-    return nullptr;
+    return value;
 }
 
 llvm::Value* ASTWalker::visit(IntNode *intNode) {
-    return llvm::ConstantInt::get(milaContext, llvm::APInt(64, intNode->getValue()));
+    return llvm::ConstantInt::get(milaContext, llvm::APInt(32, intNode->getValue()));
 }
 
 llvm::Value* ASTWalker::visit(VarNode *varNode) {
     return nullptr;
+}
+
+llvm::Value* ASTWalker::visit(ProcedureNode *procedureNode) {
+    std::vector<Value*> parameters = {};
+    for(auto const& parameter: procedureNode->getParameters())
+        parameters.push_back(parameter->walk(this));
+    
+    milaBuilder.CreateCall(
+            milaModule.getFunction("writeln"),
+            parameters
+    );
+//    std::vector<Type*> Ints(1, Type::getInt32Ty(milaContext));
+//    FunctionType * FT = FunctionType::get(Type::getInt32Ty(milaContext), Ints, false);
+//    Function * F = Function::Create(FT, Function::ExternalLinkage, "writeln", milaModule);
+
+    return nullptr;
+}
+
+llvm::Value* ASTWalker::visit(IdentifierNode *identifierNode) {
+    return symbolTable[identifierNode->getIdentifier()];
 }

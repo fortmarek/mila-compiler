@@ -11,6 +11,7 @@ class ProcedureNode: public ASTNode {
 public:
     ProcedureNode(std::string identifier, std::vector<ASTNode*> parameters);
     explicit ProcedureNode(std::string identifier);
+    std::vector<ASTNode*> getParameters();
     const void print() override;
 private:
     std::string identifier;

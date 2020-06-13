@@ -24,6 +24,8 @@ class ConstNode;
 class VarNode;
 class IntNode;
 class MainNode;
+class ProcedureNode;
+class IdentifierNode;
 
 class ASTWalker {
 public:
@@ -36,6 +38,8 @@ public:
     llvm::Value* visit(VarNode* varNode);
     llvm::Value* visit(IntNode* intNode);
     llvm::Value* visit(MainNode* mainNode);
+    llvm::Value* visit(ProcedureNode* procedureNode);
+    llvm::Value* visit(IdentifierNode* identifierNode);
 private:
     llvm::LLVMContext milaContext;   // llvm context
     llvm::IRBuilder<> milaBuilder;   // llvm builder
