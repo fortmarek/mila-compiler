@@ -19,7 +19,7 @@ Instruction -> break
 Instruction -> WhileBlock 
 Instruction -> SložPříkaz
 Instruction ->ε
-WhileBlock -> while Condition do Instruction
+WhileBlock -> while Condition do begin Instruction end;
 ForBlock -> for ident := Expression do begin Instruction end;
 IfBlock -> if Condition then Instruction ElseBlock
 ElseBlock -> else Instruction 

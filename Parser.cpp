@@ -161,6 +161,9 @@ bool Parser::parseWhileBlock(ASTNode *&result) {
     if(!eat(Token(Kind::tok_do, "do")))
         return false;
 
+    if(!eat(Token(Kind::tok_begin, "begin")))
+        return false;
+
     std::vector<ASTNode*> instructions = {};
     if(!parseInstruction(instructions))
         return false;
