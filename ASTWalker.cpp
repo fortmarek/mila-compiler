@@ -16,6 +16,7 @@
 #include "AST/BinOpNode.h"
 #include "AST/IfElseNode.h"
 #include "AST/ForNode.h"
+#include "AST/WhileNode.h"
 #include "Parser.hpp"
 
 ASTWalker::ASTWalker() :milaContext(), milaBuilder(milaContext), milaModule("mila", milaContext) {}
@@ -139,15 +140,59 @@ llvm::Value* ASTWalker::visit(BinOpNode *binOpNode) {
         return milaBuilder.CreateMul(L, R, "multmp");
     else if(operationToken == "mod")
         return milaBuilder.CreateURem(L, R, "uremtmp");
-    else if(operationToken == "=") {
+    else if(operationToken == "=")
         return milaBuilder.CreateICmp(llvm::CmpInst::ICMP_EQ, L, R, "cmptmp");
-        // Convert bool 0/1 to double 0.0 or 1.0
-//        return milaBuilder.CreateUIToFP(L, Type::getInt32Ty(milaContext), "booltmp");
-    }
+    else if(operationToken == "<>")
+        return milaBuilder.CreateICmpNE(L, R, "notcmptmp");
     else {
         std::cerr << "Invalid binary operator" << std::endl;
         return nullptr;
     }
+}
+
+llvm::Value* ASTWalker::visit(WhileNode* whileNode) {
+//    llvm::Value* startValue = loadValue(forNode->getStart());
+    // Make the new basic block for the loop header, inserting after current
+    // block.
+    Function *function = milaBuilder.GetInsertBlock()->getParent();
+    BasicBlock *preheaderBB = milaBuilder.GetInsertBlock();
+    BasicBlock *LoopBB = BasicBlock::Create(milaContext, "loop", function);
+
+    // Insert an explicit fall through from the current block to the LoopBB.
+    milaBuilder.CreateBr(LoopBB);
+
+    // Start insertion in LoopBB.
+    milaBuilder.SetInsertPoint(LoopBB);
+
+//    std::string valueName = forNode->getIdentifier();
+
+    // Start the PHI node with an entry for Start.
+//    PHINode *variable = milaBuilder.CreatePHI(Type::getInt32Ty(milaContext), 2, "whiletmp");
+//    variable->addIncoming(startValue, preheaderBB);
+
+    // Emit the body of the loop.  This, like any other expr, can change the
+    // current BB.  Note that we ignore the value computed by the body, but don't
+    // allow an error.
+    whileNode->getBody()->walk(this);
+
+    // Compute the end condition.
+
+    Value* condition = whileNode->getCondition()->walk(this);
+
+    Value *one = ConstantInt::get(Type::getInt32Ty(milaContext), 1);
+
+    // Create the "after loop" block and insert it.
+    BasicBlock *LoopEndBB = milaBuilder.GetInsertBlock();
+    BasicBlock *AfterBB = BasicBlock::Create(milaContext, "afterloop", function);
+
+    // Insert the conditional branch into the end of LoopEndBB.
+    milaBuilder.CreateCondBr(condition, LoopBB, AfterBB);
+
+    // Any new code will be inserted in AfterBB.
+    milaBuilder.SetInsertPoint(AfterBB);
+
+    // for expr always returns 0.0.
+    return Constant::getNullValue(Type::getInt32Ty(milaContext));
 }
 
 llvm::Value* ASTWalker::visit(ForNode *forNode) {

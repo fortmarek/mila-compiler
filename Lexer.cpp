@@ -63,6 +63,7 @@ Token Lexer::token(const std::string &str) {
             {"else", Kind::tok_else},
             {"for", Kind::tok_for},
             {"to", Kind::tok_to},
+            {"<>", Kind::tok_notequal},
     };
 
     auto token = kindMap.find(str);
@@ -100,7 +101,7 @@ Token Lexer::operatorToken() {
 }
 
 bool Lexer::isOperator(char character) {
-    std::regex re("[:=|&+*()-.]");
+    std::regex re("[:=|&+*()-.<>]");
     std::cmatch m;
     return std::regex_search(&character, m, re);
 }

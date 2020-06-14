@@ -12,6 +12,7 @@
 #include "AST/MainNode.h"
 #include "AST/ForNode.h"
 #include "AST/IfElseNode.h"
+#include "AST/WhileNode.h"
 
 Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()) {}
 
@@ -102,6 +103,10 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
             if(!parseForBlock(currentNodeResult))
                 return false;
             break;
+        case Kind::tok_while:
+            if(!parseWhileBlock(currentNodeResult))
+                return false;
+            break;
         default:
             Token identifier;
             if(!readIdentifier(identifier))
@@ -136,6 +141,28 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
         default:
             return parseInstruction(result);
     }
+}
+
+bool Parser::parseWhileBlock(ASTNode *&result) {
+    if(!eat(Token(Kind::tok_while, "while")))
+        return false;
+
+    ASTNode* conditionNode;
+    if(!parseCondition(conditionNode))
+        return false;
+
+    if(!eat(Token(Kind::tok_do, "do")))
+        return false;
+
+    std::vector<ASTNode*> instructions = {};
+    if(!parseInstruction(instructions))
+        return false;
+
+    ASTNode* body = new CompoundNode(instructions);
+
+    result = new WhileNode(conditionNode, body);
+
+    return eat(Token(Kind::tok_end, "end")) && eat(Token(Kind::tok_divider, ";"));
 }
 
 bool Parser::parseForBlock(ASTNode *&result) {
@@ -227,6 +254,10 @@ bool Parser::parseCondition(ASTNode *&result) {
         case Kind::tok_init:
             eat(Token(Kind::tok_init, "="));
             relationOperator = "=";
+            break;
+        case Kind::tok_notequal:
+            eat(Token(Kind::tok_notequal, "<>"));
+            relationOperator = "<>";
             break;
         default:
             return logError("Expected relation operator");

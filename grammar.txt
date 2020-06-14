@@ -15,9 +15,10 @@ Instruction -> ForBlock
 Instruction -> ident := Expression
 Instruction -> write Expression
 Instruction -> IfBlock
-Instruction -> while Condition do Instruction 
+Instruction -> WhileBlock 
 Instruction -> SložPříkaz
 Instruction ->ε
+WhileBlock -> while Condition do Instruction
 ForBlock -> for ident := Expression do begin Instruction end;
 IfBlock -> if Condition then Instruction ElseBlock
 ElseBlock -> else Instruction 
