@@ -2,33 +2,35 @@ Program -> Dekl SložPříkaz
 Dekl -> DeklKonst Dekl 
 Dekl -> DeklProm Dekl 
 Dekl -> ε
-DeklKonst -> const ident = číslo ZbDeklKonst ;
-ZbDeklKonst -> , ident = číslo ZbDeklKonst 
+DeklKonst -> const ident = number ZbDeklKonst ;
+ZbDeklKonst -> , ident = number ZbDeklKonst 
 ZbDeklKonst -> ε
 DeklProm -> var ident ZbDeklProm ;
 ZbDeklProm -> , ident ZbDeklProm
 ZbDeklProm -> ε 
- SložPříkaz -> begin Instruction ZbPříkazů end
- ZbPříkazů -> ; Instruction ZbPříkazů
-ZbPříkazů->ε
-Instruction -> ident := Výraz
-Instruction -> write Výraz
+SložPříkaz -> begin Instruction ZbPříkazů end
+ZbPříkazů -> ; Instruction ZbPříkazů
+ZbPříkazů -> ε
+Instruction -> ForBlock
+Instruction -> ident := Expression
+Instruction -> write Expression
 Instruction -> IfBlock
 Instruction -> while Condition do Instruction 
 Instruction -> SložPříkaz
 Instruction ->ε
+ForBlock -> for ident := Expression do begin Instruction end;
 IfBlock -> if Condition then Instruction ElseBlock
 ElseBlock -> else Instruction 
 ElseBlock -> ε 
-Condition -> Výraz RelOp Výraz
+Condition -> Expression RelOp Expression
 RelOp -> =
 RelOp -> <>
 RelOp -> <
 RelOp -> >
 RelOp -> <=
 RelOp -> >=
-Výraz -> Term ZbVýrazu
-Výraz -> - Term ZbVýrazu
+Expression -> Term ZbVýrazu
+Expression -> - Term ZbVýrazu
 ZbVýrazu -> + Term ZbVýrazu
 ZbVýrazu -> - Term ZbVýrazu
 ZbVýrazu ->ε
@@ -37,5 +39,5 @@ ZbTermu -> * Faktor ZbTermu
 ZbTermu -> / Faktor ZbTermu
 ZbTermu -> ε
 Faktor -> ident
-Faktor -> číslo 
-Faktor  -> ( Výraz ) 
+Faktor -> number 
+Faktor  -> ( Expression ) 

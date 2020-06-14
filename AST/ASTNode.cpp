@@ -15,6 +15,7 @@
 #include "AssignNode.h"
 #include "BinOpNode.h"
 #include "IfElseNode.h"
+#include "ForNode.h"
 
 const void ASTNode::print() {
 
@@ -43,5 +44,7 @@ llvm::Value* ASTNode::walk(ASTWalker *walker) {
         return walker->visit(binOpNode);
     else if(auto ifElseNode = dynamic_cast<IfElseNode*>(this))
         return walker->visit(ifElseNode);
+    else if(auto forNode = dynamic_cast<ForNode*>(this))
+        return walker->visit(forNode);
     return nullptr;
 }

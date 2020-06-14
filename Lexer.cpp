@@ -61,6 +61,8 @@ Token Lexer::token(const std::string &str) {
             {"while", Kind::tok_while},
             {"do", Kind::tok_do},
             {"else", Kind::tok_else},
+            {"for", Kind::tok_for},
+            {"to", Kind::tok_to},
     };
 
     auto token = kindMap.find(str);

@@ -10,6 +10,7 @@
 #include "AST/IdentifierNode.h"
 #include "AST/BinOpNode.h"
 #include "AST/MainNode.h"
+#include "AST/ForNode.h"
 #include "AST/IfElseNode.h"
 
 Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()) {}
@@ -97,6 +98,10 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
             if(!parseIfBlock(currentNodeResult))
                 return false;
             break;
+        case Kind::tok_for:
+            if(!parseForBlock(currentNodeResult))
+                return false;
+            break;
         default:
             Token identifier;
             if(!readIdentifier(identifier))
@@ -108,6 +113,8 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
                     break;
                 case Kind::tok_assign:
                     if(!parseAssign(currentNodeResult, identifier))
+                        return false;
+                    if(!eat(Token(Kind::tok_divider, ";")))
                         return false;
 //            std::cout << "parsed assign" << std::endl;
                     break;
@@ -129,6 +136,51 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
         default:
             return parseInstruction(result);
     }
+}
+
+bool Parser::parseForBlock(ASTNode *&result) {
+    if(!eat(Token(Kind::tok_for, "for")))
+        return false;
+
+    Token identifier;
+    if(!readIdentifier(identifier))
+        return false;
+
+    if(!eat(Token(Kind::tok_assign, ":=")))
+        return false;
+
+    ASTNode* startNode;
+    if(!parseExpression(startNode))
+        return false;
+
+    if(!eat(Token(Kind::tok_to, "to")))
+        return false;
+
+    ASTNode* endNode;
+    if(!parseExpression(endNode))
+        return false;
+
+    if(!eat(Token(Kind::tok_do, "do")))
+        return false;
+
+    if(!eat(Token(Kind::tok_begin, "begin")))
+        return false;
+
+    std::vector<ASTNode*> bodyInstructions = {};
+    if(!parseInstruction(bodyInstructions))
+        return false;
+
+    if(!eat(Token(Kind::tok_end, "end")))
+        return false;
+
+    if(!eat(Token(Kind::tok_divider, ";")))
+        return false;
+
+    ASTNode* bodyNode = new CompoundNode(bodyInstructions);
+
+    result = new ForNode(identifier.getValue(), startNode, endNode, bodyNode);
+
+    return true;
 }
 
 bool Parser::parseIfBlock(ASTNode *&result) {
@@ -199,7 +251,7 @@ bool Parser::parseAssign(ASTNode *&result, Token identifier) {
 
     result = new AssignNode(identifier.getValue(), valueNode);
 
-    return eat(Token(Kind::tok_divider, ";"));
+    return true;
 }
 
 bool Parser::parseProcedure(ASTNode *&result, Token identifier) {

@@ -15,6 +15,7 @@
 #include "AST/AssignNode.h"
 #include "AST/BinOpNode.h"
 #include "AST/IfElseNode.h"
+#include "AST/ForNode.h"
 #include "Parser.hpp"
 
 ASTWalker::ASTWalker() :milaContext(), milaBuilder(milaContext), milaModule("mila", milaContext) {}
@@ -149,15 +150,74 @@ llvm::Value* ASTWalker::visit(BinOpNode *binOpNode) {
     }
 }
 
+llvm::Value* ASTWalker::visit(ForNode *forNode) {
+    llvm::Value* startValue = loadValue(forNode->getStart());
+    // Make the new basic block for the loop header, inserting after current
+    // block.
+    Function *function = milaBuilder.GetInsertBlock()->getParent();
+    BasicBlock *preheaderBB = milaBuilder.GetInsertBlock();
+    BasicBlock *LoopBB =
+            BasicBlock::Create(milaContext, "loop", function);
+
+    // Insert an explicit fall through from the current block to the LoopBB.
+    milaBuilder.CreateBr(LoopBB);
+
+    // Start insertion in LoopBB.
+    milaBuilder.SetInsertPoint(LoopBB);
+
+    std::string valueName = forNode->getIdentifier();
+
+    // Start the PHI node with an entry for Start.
+    PHINode *variable = milaBuilder.CreatePHI(Type::getInt32Ty(milaContext),
+                                          2, valueName);
+    variable->addIncoming(startValue, preheaderBB);
+
+    // Within the loop, the variable is defined equal to the PHI node.  If it
+    // shadows an existing variable, we have to restore it, so save it now.
+    Value *oldValue = symbolTable[valueName];
+    symbolTable[valueName] = variable;
+
+    // Emit the body of the loop.  This, like any other expr, can change the
+    // current BB.  Note that we ignore the value computed by the body, but don't
+    // allow an error.
+    forNode->getBody()->walk(this);
+
+    Value *one = ConstantInt::get(Type::getInt32Ty(milaContext), 1);
+
+    Value *nextVar = milaBuilder.CreateAdd(variable, one, "nextvar");
+
+    // Compute the end condition.
+    Value* endCondition = forNode->getEnd()->walk(this);
+
+    endCondition = milaBuilder.CreateICmpNE(endCondition, variable, "loopcond");
+
+    // Create the "after loop" block and insert it.
+    BasicBlock *LoopEndBB = milaBuilder.GetInsertBlock();
+    BasicBlock *AfterBB =
+            BasicBlock::Create(milaContext, "afterloop", function);
+
+    // Insert the conditional branch into the end of LoopEndBB.
+    milaBuilder.CreateCondBr(endCondition, LoopBB, AfterBB);
+
+    // Any new code will be inserted in AfterBB.
+    milaBuilder.SetInsertPoint(AfterBB);
+
+    // Add a new entry to the PHI node for the backedge.
+    variable->addIncoming(nextVar, LoopEndBB);
+
+    // TODO: Restore shadowed variable
+    // Restore the unshadowed variable.
+//    if (oldValue)
+//        symbolTable[oldValue] = oldValue;
+//    else
+//        NamedValues.erase(VarName);
+
+    // for expr always returns 0.0.
+    return Constant::getNullValue(Type::getInt32Ty(milaContext));
+}
+
 llvm::Value* ASTWalker::visit(IfElseNode *ifElseNode) {
     llvm::Value* conditionValue = loadValue(ifElseNode->getConditionNode());
-
-    // Convert condition to a bool by comparing non-equal to 0.0.
-//    conditionValue = milaBuilder.CreateFCmpONE(
-//            conditionValue,
-//            ConstantFP::get(milaContext, APFloat(0.0)),
-//            "ifcond"
-//    );
 
     Function *function = milaBuilder.GetInsertBlock()->getParent();
 
