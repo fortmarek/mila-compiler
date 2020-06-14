@@ -14,6 +14,7 @@
 #include "AST/IdentifierNode.h"
 #include "AST/AssignNode.h"
 #include "AST/BinOpNode.h"
+#include "AST/IfElseNode.h"
 #include "Parser.hpp"
 
 ASTWalker::ASTWalker() :milaContext(), milaBuilder(milaContext), milaModule("mila", milaContext) {}
@@ -57,29 +58,7 @@ llvm::Value* ASTWalker::visit(MainNode *mainNode) {
     BasicBlock * BB = BasicBlock::Create(milaContext, "entry", MainFunction);
     milaBuilder.SetInsertPoint(BB);
 
-    // create readln function
-//    std::vector<Type*> Ints(1, Type::getInt32Ty(milaContext));
-//    FunctionType * FTT = FunctionType::get(milaBuilder.getVoidTy(), Ints, false);
-//    Function * F = Function::Create(FTT, Function::ExternalLinkage, "readln", milaModule);
-//    for (auto & Arg : F->args()) {
-//        Arg.setName("y");
-//        std::cout << "olaa" << std::endl;
-//        // Create an alloca for this variable.
-//        AllocaInst *Alloca = ASTWalker::createEntryBlockAlloca(F, Type::getInt32Ty(milaContext), Arg.getName());
-//        std::cout << "olaa" << std::endl;
-//        // Store the initial value into the alloca.
-//        milaBuilder.CreateStore(&Arg, Alloca);
-//
-//        // Add arguments to variable symbol table.
-//        symbolTable[Arg.getName()] = Alloca;
-//    }
-
     visit(dynamic_cast<CompoundNode*>(mainNode));
-
-    // call writeln with value from lexel
-//        milaBuilder.CreateCall(milaModule.getFunction("writeln"), {
-//                ConstantInt::get(milaContext, APInt(32, lexer->numVal()))
-//        });
 
     // return 0
     milaBuilder.CreateRet(ConstantInt::get(Type::getInt32Ty(milaContext), 0));
@@ -87,9 +66,10 @@ llvm::Value* ASTWalker::visit(MainNode *mainNode) {
 }
 
 llvm::Value* ASTWalker::visit(CompoundNode *compound) {
+    llvm::Value* value;
     for(auto const& child: compound->getChildren())
-        child->walk(this);
-    return nullptr;
+        value = child->walk(this);
+    return value;
 }
 
 llvm::Value* ASTWalker::visit(ConstNode *constNode) {
@@ -119,15 +99,15 @@ llvm::Value* ASTWalker::visit(ProcedureNode *procedureNode) {
         if(arg.getType()->isPointerTy())
             parameters.push_back(value);
         else
-            parameters.push_back(milaBuilder.CreateLoad(value));
+            parameters.push_back(loadValue(*parametersIterator));
         parametersIterator++;
     }
     
-    milaBuilder.CreateCall(
+    Value* value = milaBuilder.CreateCall(
             milaModule.getFunction(procedureNode->getIdentifier()),
             parameters
     );
-    return nullptr;
+    return value;
 }
 
 llvm::Value* ASTWalker::visit(IdentifierNode *identifierNode) {
@@ -158,10 +138,63 @@ llvm::Value* ASTWalker::visit(BinOpNode *binOpNode) {
         return milaBuilder.CreateMul(L, R, "multmp");
     else if(operationToken == "mod")
         return milaBuilder.CreateURem(L, R, "uremtmp");
+    else if(operationToken == "=") {
+        return milaBuilder.CreateICmp(llvm::CmpInst::ICMP_EQ, L, R, "cmptmp");
+        // Convert bool 0/1 to double 0.0 or 1.0
+//        return milaBuilder.CreateUIToFP(L, Type::getInt32Ty(milaContext), "booltmp");
+    }
     else {
         std::cerr << "Invalid binary operator" << std::endl;
         return nullptr;
     }
+}
+
+llvm::Value* ASTWalker::visit(IfElseNode *ifElseNode) {
+    llvm::Value* conditionValue = loadValue(ifElseNode->getConditionNode());
+
+    // Convert condition to a bool by comparing non-equal to 0.0.
+//    conditionValue = milaBuilder.CreateFCmpONE(
+//            conditionValue,
+//            ConstantFP::get(milaContext, APFloat(0.0)),
+//            "ifcond"
+//    );
+
+    Function *function = milaBuilder.GetInsertBlock()->getParent();
+
+    // Create blocks for the then and else cases.  Insert the 'then' block at the
+    // end of the function.
+    BasicBlock *ifBB = BasicBlock::Create(milaContext, "then", function);
+    BasicBlock *elseBB = BasicBlock::Create(milaContext, "else");
+    BasicBlock *mergeBB = BasicBlock::Create(milaContext, "ifcont");
+
+    milaBuilder.CreateCondBr(conditionValue, ifBB, elseBB);
+
+    // Emit then value.
+    milaBuilder.SetInsertPoint(ifBB);
+    llvm::Value* ifValue = loadValue(ifElseNode->getIfNode());
+
+    milaBuilder.CreateBr(mergeBB);
+    // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+    ifBB = milaBuilder.GetInsertBlock();
+
+    // Emit else block.
+    function->getBasicBlockList().push_back(elseBB);
+    milaBuilder.SetInsertPoint(elseBB);
+
+    llvm::Value* elseValue = loadValue(ifElseNode->getElseNode());
+
+    milaBuilder.CreateBr(mergeBB);
+    // codegen of 'Else' can change the current block, update ElseBB for the PHI.
+    elseBB = milaBuilder.GetInsertBlock();
+
+    // Emit merge block.
+    function->getBasicBlockList().push_back(mergeBB);
+    milaBuilder.SetInsertPoint(mergeBB);
+//    return milaBuilder.getInt32(0);
+    llvm::PHINode *PN = milaBuilder.CreatePHI(Type::getInt32Ty(milaContext), 2, "iftmp");
+    PN->addIncoming(ifValue, ifBB);
+    PN->addIncoming(elseValue, elseBB);
+    return PN;
 }
 
 llvm::AllocaInst* ASTWalker::createEntryBlockAlloca(llvm::Function *function, llvm::Type *ty,
@@ -181,6 +214,7 @@ llvm::Value* ASTWalker::loadValue(const std::string& identifier) {
 llvm::Value* ASTWalker::loadValue(ASTNode* node) {
     if(auto varNode = dynamic_cast<IdentifierNode*>(node))
         return loadValue(varNode->getIdentifier());
-    else
+    else {
         return node->walk(this);
+    }
 }

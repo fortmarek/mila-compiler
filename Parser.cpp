@@ -49,7 +49,7 @@ bool Parser::parseProgram() {
 
     auto programNode = new ProgramASTNode(identifierToken.getValue(), declarationsNode, mainNode);
 
-    programNode->print();
+//    programNode->print();
 
     if(!eat(Token(Kind::tok_dot, ".")))
         return false;
@@ -98,13 +98,9 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
                 return false;
             break;
         default:
-            std::cout << "hmm" << std::endl;
-            std::cout << lexer->peekNextToken().getValue() << std::endl;
             Token identifier;
             if(!readIdentifier(identifier))
                 return false;
-            std::cout << "hmm" << std::endl;
-            std::cout << identifier.getValue() << std::endl;
             switch(lexer->peekNextToken().getKind()) {
                 case Kind::tok_left_paren:
                     if(!parseProcedure(currentNodeResult, identifier))

@@ -28,6 +28,7 @@ class ProcedureNode;
 class IdentifierNode;
 class AssignNode;
 class BinOpNode;
+class IfElseNode;
 
 class ASTWalker {
 public:
@@ -44,6 +45,7 @@ public:
     llvm::Value* visit(IdentifierNode* identifierNode);
     llvm::Value* visit(AssignNode* assignNode);
     llvm::Value* visit(BinOpNode* binOpNode);
+    llvm::Value* visit(IfElseNode* ifElseNode);
 private:
     llvm::LLVMContext milaContext;   // llvm context
     llvm::IRBuilder<> milaBuilder;   // llvm builder

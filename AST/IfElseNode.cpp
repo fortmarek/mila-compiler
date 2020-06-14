@@ -9,7 +9,9 @@ IfElseNode::IfElseNode(ASTNode *conditionNode, ASTNode *ifNode, ASTNode *elseNod
 const void IfElseNode::print() {
     std::cout << "If else node:" << std::endl;
     conditionNode->print();
+    std::cout << "If Node:" << std::endl;
     ifNode->print();
+    std::cout << "Else Node:" << std::endl;
     if(elseNode) {
         elseNode->print();
     }

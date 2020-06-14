@@ -1,41 +1,41 @@
-1: Program -> Dekl SložPříkaz
-2: Dekl -> DeklKonst Dekl 
-3: Dekl -> DeklProm Dekl 
-4: Dekl -> ε
-5: DeklKonst -> const ident = číslo ZbDeklKonst ;
-6: ZbDeklKonst -> , ident = číslo ZbDeklKonst 
-7: ZbDeklKonst -> ε
-8: DeklProm -> var ident ZbDeklProm ;
-9: ZbDeklProm -> , ident ZbDeklProm
-10:ZbDeklProm -> ε 
-11: SložPříkaz -> begin Instruction ZbPříkazů end
-12: ZbPříkazů -> ; Instruction ZbPříkazů
-13:ZbPříkazů->ε
-14:Instruction -> ident := Výraz
-15:Instruction -> write Výraz
-16:Instruction -> IfBlock
-17:Instruction -> while Condition do Instruction 
-18:Instruction -> SložPříkaz
-19:Instruction ->ε
-IfBlock -> if Condition then Instruction Else
-20: Else -> else Instruction 
-21: Else -> ε 
-22: Condition -> Výraz RelOp Výraz
-23:RelOp -> =
-24:RelOp -> <>
-25:RelOp -> <
-26:RelOp -> >
-27:RelOp -> <=
-28:RelOp -> >=
-29:Výraz -> Term ZbVýrazu
-30:Výraz -> - Term ZbVýrazu
-31:ZbVýrazu -> + Term ZbVýrazu
-32:ZbVýrazu -> - Term ZbVýrazu
-33:ZbVýrazu ->ε
-34:Term -> Faktor ZbTermu
-35:ZbTermu -> * Faktor ZbTermu
-36:ZbTermu -> / Faktor ZbTermu
-37:ZbTermu -> ε
-38:Faktor -> ident
-39:Faktor -> číslo 
-40:Faktor  -> ( Výraz ) 
+Program -> Dekl SložPříkaz
+Dekl -> DeklKonst Dekl 
+Dekl -> DeklProm Dekl 
+Dekl -> ε
+DeklKonst -> const ident = číslo ZbDeklKonst ;
+ZbDeklKonst -> , ident = číslo ZbDeklKonst 
+ZbDeklKonst -> ε
+DeklProm -> var ident ZbDeklProm ;
+ZbDeklProm -> , ident ZbDeklProm
+ZbDeklProm -> ε 
+ SložPříkaz -> begin Instruction ZbPříkazů end
+ ZbPříkazů -> ; Instruction ZbPříkazů
+ZbPříkazů->ε
+Instruction -> ident := Výraz
+Instruction -> write Výraz
+Instruction -> IfBlock
+Instruction -> while Condition do Instruction 
+Instruction -> SložPříkaz
+Instruction ->ε
+IfBlock -> if Condition then Instruction ElseBlock
+ElseBlock -> else Instruction 
+ElseBlock -> ε 
+Condition -> Výraz RelOp Výraz
+RelOp -> =
+RelOp -> <>
+RelOp -> <
+RelOp -> >
+RelOp -> <=
+RelOp -> >=
+Výraz -> Term ZbVýrazu
+Výraz -> - Term ZbVýrazu
+ZbVýrazu -> + Term ZbVýrazu
+ZbVýrazu -> - Term ZbVýrazu
+ZbVýrazu ->ε
+Term -> Faktor ZbTermu
+ZbTermu -> * Faktor ZbTermu
+ZbTermu -> / Faktor ZbTermu
+ZbTermu -> ε
+Faktor -> ident
+Faktor -> číslo 
+Faktor  -> ( Výraz ) 
