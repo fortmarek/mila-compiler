@@ -17,6 +17,7 @@
 #include "IfElseNode.h"
 #include "ForNode.h"
 #include "WhileNode.h"
+#include "BreakNode.h"
 
 const void ASTNode::print() {
 
@@ -49,5 +50,7 @@ llvm::Value* ASTNode::walk(ASTWalker *walker) {
         return walker->visit(forNode);
     else if(auto whileNode = dynamic_cast<WhileNode*>(this))
         return walker->visit(whileNode);
+    else if(auto breakNode = dynamic_cast<BreakNode*>(this))
+        return walker->visit(breakNode);
     return nullptr;
 }

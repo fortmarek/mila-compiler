@@ -16,6 +16,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
+#include <queue>
 
 class ASTNode;
 class ProgramASTNode;
@@ -31,6 +32,7 @@ class BinOpNode;
 class IfElseNode;
 class ForNode;
 class WhileNode;
+class BreakNode;
 
 class ASTWalker {
 public:
@@ -50,6 +52,7 @@ public:
     llvm::Value* visit(IfElseNode* ifElseNode);
     llvm::Value* visit(ForNode* forNode);
     llvm::Value* visit(WhileNode* whileNode);
+    llvm::Value* visit(BreakNode* breakNode);
 private:
     llvm::LLVMContext milaContext;   // llvm context
     llvm::IRBuilder<> milaBuilder;   // llvm builder
@@ -57,6 +60,7 @@ private:
     std::map<std::string, llvm::Value*> symbolTable;
     llvm::Value* loadValue(const std::string& identifier);
     llvm::Value* loadValue(ASTNode* node);
+    std::queue<llvm::BasicBlock*> loops;
     static llvm::AllocaInst *createEntryBlockAlloca(llvm::Function *function, llvm::Type *ty, const std::string &name);
 };
 

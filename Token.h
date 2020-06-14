@@ -32,9 +32,10 @@ enum Kind {
     tok_integer =       -17,
     tok_for =           -18,
     tok_do =            -19,
+    tok_break = -42,
 
     // 2-character operators
-            tok_notequal =      -20,
+    tok_notequal =      -20,
     tok_lessequal =     -21,
     tok_greaterequal =  -22,
     tok_assign =        -23,

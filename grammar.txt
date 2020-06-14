@@ -15,6 +15,7 @@ Instruction -> ForBlock
 Instruction -> ident := Expression
 Instruction -> write Expression
 Instruction -> IfBlock
+Instruction -> break
 Instruction -> WhileBlock 
 Instruction -> SložPříkaz
 Instruction ->ε

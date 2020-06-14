@@ -13,6 +13,7 @@
 #include "AST/ForNode.h"
 #include "AST/IfElseNode.h"
 #include "AST/WhileNode.h"
+#include "AST/BreakNode.h"
 
 Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()) {}
 
@@ -106,6 +107,12 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
         case Kind::tok_while:
             if(!parseWhileBlock(currentNodeResult))
                 return false;
+            break;
+        case Kind::tok_break:
+            eat(Token(Kind::tok_break, "break"));
+            if(!eat(Token(Kind::tok_divider, ";")))
+                return false;
+            currentNodeResult = new BreakNode();
             break;
         default:
             Token identifier;
