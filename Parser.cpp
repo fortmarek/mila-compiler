@@ -154,8 +154,14 @@ bool Parser::parseWhileBlock(ASTNode *&result) {
     if(!eat(Token(Kind::tok_while, "while")))
         return false;
 
+    if(!eat(Token(Kind::tok_left_paren, "(")))
+        return false;
+
     ASTNode* conditionNode;
     if(!parseCondition(conditionNode))
+        return false;
+
+    if(!eat(Token(Kind::tok_right_paren, ")")))
         return false;
 
     if(!eat(Token(Kind::tok_do, "do")))
@@ -268,6 +274,14 @@ bool Parser::parseCondition(ASTNode *&result) {
         case Kind::tok_notequal:
             eat(Token(Kind::tok_notequal, "<>"));
             relationOperator = "<>";
+            break;
+        case Kind::tok_greaterequal:
+            eat(Token(Kind::tok_greaterequal, ">="));
+            relationOperator = ">=";
+            break;
+        case Kind::tok_lessequal:
+            eat(Token(Kind::tok_lessequal, "=<"));
+            relationOperator = "=<";
             break;
         default:
             return logError("Expected relation operator");

@@ -3,38 +3,38 @@
 
 Token Lexer::firstToken() {
     char inputChar;
-    while(std::cin >> std::noskipws >> inputChar)
+    while(std::cin >> std::noskipws >> inputChar) {
+//        std::cout << inputChar << std::endl;
         input.push_back(inputChar);
+    }
+
     currentPtr = input.begin();
     return lexToken();
 }
 
 Lexer::Lexer() :nextToken(firstToken()) {}
 
-char Lexer::peek() { return *currentPtr; }
+std::string Lexer::peek() { return std::string (currentPtr, currentPtr + 1); }
 
-char Lexer::get() { return *currentPtr++; }
+std::string Lexer::get() { return std::string (currentPtr, currentPtr++); }
 
-bool Lexer::isSpace(char character) {
-    return character == ' ' || character == '\n';
+bool Lexer::isSpace(std::string character) {
+    return character == " " || character == "\n" || character == "\t";
 }
 
-bool Lexer::isDigit(char character) {
+bool Lexer::isDigit(std::string character) {
     std::regex re("[0-9]");
-    std::cmatch m;
-    return std::regex_search(&character, m, re);
+    return std::regex_search(character, re);
 }
 
-bool Lexer::isIdentifier(char character) {
+bool Lexer::isIdentifier(std::string character) {
     std::regex re("[a-zA-Z0-9]");
-    std::cmatch m;
-    return std::regex_search(&character, m, re);
+    return std::regex_match(character, re);
 }
 
-bool Lexer::isFirstIdentifierChar(char character) {
+bool Lexer::isFirstIdentifierChar(std::string character) {
     std::regex re("[a-zA-Z]");
-    std::cmatch m;
-    return std::regex_search(&character, m, re);
+    return std::regex_match(character, re);
 }
 
 Token Lexer::token(const std::string &str) {
@@ -64,6 +64,8 @@ Token Lexer::token(const std::string &str) {
             {"for", Kind::tok_for},
             {"to", Kind::tok_to},
             {"<>", Kind::tok_notequal},
+            {">=", Kind::tok_greaterequal},
+            {"=<", Kind::tok_lessequal},
             {"break", Kind::tok_break},
     };
 
@@ -77,8 +79,9 @@ Token Lexer::token(const std::string &str) {
 Token Lexer::identifierToken() {
     auto startOfToken = currentPtr;
     get();
-    while(isIdentifier(peek()))
+    while(isIdentifier(peek())) {
         get();
+    }
     std::string identifier(startOfToken, currentPtr);
     return token(identifier);
 }
@@ -101,10 +104,9 @@ Token Lexer::operatorToken() {
     return token(operatorString);
 }
 
-bool Lexer::isOperator(char character) {
+bool Lexer::isOperator(std::string character) {
     std::regex re("[:=|&+*()-.<>]");
-    std::cmatch m;
-    return std::regex_search(&character, m, re);
+    return std::regex_search(character, re);
 }
 
 Token Lexer::lexToken() {
@@ -120,7 +122,7 @@ Token Lexer::lexToken() {
     if(isDigit(peek()))
         return digitToken();
 
-    if(peek() == ';') {
+    if(peek() == ";") {
         get();
         return Token(Kind::tok_divider, ";");
     }
