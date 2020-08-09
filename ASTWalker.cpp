@@ -105,7 +105,7 @@ llvm::Value* ASTWalker::visit(ProcedureNode *procedureNode) {
             parameters.push_back(loadValue(*parametersIterator));
         parametersIterator++;
     }
-    
+
     Value* value = milaBuilder.CreateCall(
             milaModule.getFunction(procedureNode->getIdentifier()),
             parameters
@@ -142,13 +142,28 @@ llvm::Value* ASTWalker::visit(BinOpNode *binOpNode) {
     else if(operationToken == "mod")
         return milaBuilder.CreateURem(L, R, "uremtmp");
     else if(operationToken == "=")
-        return milaBuilder.CreateICmp(llvm::CmpInst::ICMP_EQ, L, R, "cmptmp");
+        return milaBuilder.CreateICmpEQ(L, R, "cmptmp");
     else if(operationToken == "<>")
         return milaBuilder.CreateICmpNE(L, R, "notcmptmp");
+    else if(operationToken == ">=")
+        return milaBuilder.CreateICmpSGE(L, R, "sgetmp");
+    else if(operationToken == "=<")
+        return milaBuilder.CreateICmpSLE(L, R, "sletmp");
     else {
         std::cerr << "Invalid binary operator" << std::endl;
         return nullptr;
     }
+
+//    ICMP_EQ    = 32,  ///< equal
+//    ICMP_NE    = 33,  ///< not equal
+//    ICMP_UGT   = 34,  ///< unsigned greater than
+//    ICMP_UGE   = 35,  ///< unsigned greater or equal
+//    ICMP_ULT   = 36,  ///< unsigned less than
+//    ICMP_ULE   = 37,  ///< unsigned less or equal
+//    ICMP_SGT   = 38,  ///< signed greater than
+//    ICMP_SGE   = 39,  ///< signed greater or equal
+//    ICMP_SLT   = 40,  ///< signed less than
+//    ICMP_SLE   = 41,  ///< signed less or equal
 }
 
 llvm::Value* ASTWalker::visit(WhileNode* whileNode) {
@@ -203,8 +218,11 @@ llvm::Value* ASTWalker::visit(ForNode *forNode) {
     std::string valueName = forNode->getIdentifier();
 
     // Start the PHI node with an entry for Start.
-    PHINode *variable = milaBuilder.CreatePHI(Type::getInt32Ty(milaContext),
-                                          2, valueName);
+    PHINode *variable = milaBuilder.CreatePHI(
+            Type::getInt32Ty(milaContext),
+            2,
+            valueName
+    );
     variable->addIncoming(startValue, preheaderBB);
 
     // Within the loop, the variable is defined equal to the PHI node.  If it
@@ -219,7 +237,13 @@ llvm::Value* ASTWalker::visit(ForNode *forNode) {
 
     Value *one = ConstantInt::get(Type::getInt32Ty(milaContext), 1);
 
-    Value *nextVar = milaBuilder.CreateAdd(variable, one, "nextvar");
+    Value *nextVar;
+    switch (forNode->getType()) {
+        case ForType::to:
+            nextVar = milaBuilder.CreateAdd(variable, one, "nextvar");
+        case ForType::downto:
+            nextVar = milaBuilder.CreateSub(variable, one, "nextvar");
+    }
 
     // Compute the end condition.
     Value* endCondition = forNode->getEnd()->walk(this);

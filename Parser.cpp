@@ -196,9 +196,21 @@ bool Parser::parseForBlock(ASTNode *&result) {
     if(!parseExpression(startNode))
         return false;
 
-    if(!eat(Token(Kind::tok_to, "to")))
-        return false;
+    ForType type;
 
+    switch(lexer->peekNextToken().getKind()) {
+        case Kind::tok_to:
+            eat(Token(Kind::tok_to, "to"));
+            type = ForType::to;
+            break;
+        case Kind::tok_downto:
+            eat(Token(Kind::tok_downto, "downto"));
+            type = ForType::downto;
+            break;
+        default:
+            return logError("Expected to or downto");
+    }
+    
     ASTNode* endNode;
     if(!parseExpression(endNode))
         return false;
@@ -221,7 +233,7 @@ bool Parser::parseForBlock(ASTNode *&result) {
 
     ASTNode* bodyNode = new CompoundNode(bodyInstructions);
 
-    result = new ForNode(identifier.getValue(), startNode, endNode, bodyNode);
+    result = new ForNode(identifier.getValue(), type, startNode, endNode, bodyNode);
 
     return true;
 }

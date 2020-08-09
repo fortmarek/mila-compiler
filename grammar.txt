@@ -20,7 +20,8 @@ Instruction -> WhileBlock
 Instruction -> SložPříkaz
 Instruction ->ε
 WhileBlock -> while (Condition) do begin Instruction end;
-ForBlock -> for ident := Expression do begin Instruction end;
+ForBlock -> for ident := Expression to Expression do begin Instruction end;
+ForBlock -> for ident := Expression downto Expression do begin Instruction end;
 IfBlock -> if Condition then Instruction ElseBlock
 ElseBlock -> else Instruction 
 ElseBlock -> ε 

@@ -14,7 +14,17 @@ const void ForNode::print() {
     body->print();
 }
 
-ForNode::ForNode(std::string identifier, ASTNode *start, ASTNode *end, ASTNode *body) :identifier(identifier), start(start), end(end), body(body) {}
+ForNode::ForNode(
+        std::string identifier,
+        ForType type,
+        ASTNode *start,
+        ASTNode *end,
+        ASTNode *body
+): identifier(std::move(identifier)), type(type), start(start), end(end), body(body) {}
+
+ForType ForNode::getType() {
+    return type;
+}
 
 std::string ForNode::getIdentifier() {
     return identifier;

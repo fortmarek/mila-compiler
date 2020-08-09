@@ -63,6 +63,7 @@ Token Lexer::token(const std::string &str) {
             {"else", Kind::tok_else},
             {"for", Kind::tok_for},
             {"to", Kind::tok_to},
+            {"downto", Kind::tok_downto},
             {"<>", Kind::tok_notequal},
             {">=", Kind::tok_greaterequal},
             {"=<", Kind::tok_lessequal},
