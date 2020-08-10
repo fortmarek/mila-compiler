@@ -40,10 +40,11 @@ bool Lexer::isFirstIdentifierChar(std::string character) {
 Token Lexer::token(const std::string &str) {
     const std::map<std::string, Kind> kindMap = {
             {"program", Kind::tok_program},
+            {"function", Kind::tok_function},
+            {"procedure", Kind::tok_procedure},
             {"const", Kind::tok_const},
             {"var", Kind::tok_var},
             {";", Kind::tok_divider},
-            {",", Kind::tok_}
             {"=", Kind::tok_init},
             {":=", Kind::tok_assign},
             {":", Kind::tok_type},

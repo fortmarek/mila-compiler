@@ -39,16 +39,20 @@ bool Parser::parseProgram() {
     if(lexer->getToken().getKind() != Kind::tok_divider)
         return logError("Missing ; after program declaration");
 
-    std::vector<ASTNode*> declarations = {};
+    std::vector<ASTNode*> instructions = {};
 
-    if(!parseDeclaration(declarations))
+    if(!parseMethodDeclaration(instructions))
         return false;
+
+    if(!parseDeclaration(instructions))
+        return false;
+
+    // TODO: Delete
     auto declarationsNode = new CompoundNode({});
 
-//    std::vector<ASTNode*> instructions;
-    if(!parseBlock(declarations))
+    if(!parseBlock(instructions))
         return false;
-    auto mainNode = new MainNode(declarations);
+    auto mainNode = new MainNode(instructions);
 
     auto programNode = new ProgramASTNode(identifierToken.getValue(), declarationsNode, mainNode);
 
@@ -60,6 +64,31 @@ bool Parser::parseProgram() {
     program = programNode;
 
     return true;
+}
+
+bool Parser::parseMethodDeclaration(std::vector<ASTNode *> &result) {
+    switch(lexer->peekNextToken().getKind()) {
+        case Kind::tok_function:
+            ASTNode* functionNode;
+            if(!parseFunctionDeclaration(functionNode))
+                return false;
+            result.push_back(functionNode);
+            return true;
+        case Kind::tok_procedure:
+            // TODO: Add procedure
+            return false;
+        default:
+            return true;
+    }
+}
+
+bool Parser::parseFunctionDeclaration(ASTNode *&result) {
+    if(!eat(Token(Kind::tok_function, "function")))
+        return false;
+
+    Token identifier;
+    if(!readIdentifier(identifier))
+        return false;
 }
 
 bool Parser::parseDeclaration(std::vector<ASTNode*>& result) {

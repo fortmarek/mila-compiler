@@ -22,6 +22,8 @@ private:
     bool logError(const std::string& reason);
 
     bool parseProgram();
+    bool parseMethodDeclaration(std::vector<ASTNode*>& result);
+    bool parseFunctionDeclaration(ASTNode*& result);
     bool parseDeclaration(std::vector<ASTNode*>& result);
     bool parseConstDeclaration(ASTNode*& result);
     bool parseVarDeclaration(ASTNode*& result);

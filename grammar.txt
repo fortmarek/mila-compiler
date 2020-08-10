@@ -1,14 +1,19 @@
-Program -> Declaration SložPříkaz
-Declaration -> DeclarationKonst Declaration 
-Declaration -> DeclarationProm Declaration 
+Program -> FunctionDeclaration Declaration Block .
+Declaration -> ConstDeclaration Declaration 
+Declaration -> VarDeclaration Declaration 
 Declaration -> ε
-DeclarationKonst -> const ident = number RestDeclarationKonst ;
-RestDeclarationKonst -> , ident = number RestDeclarationKonst 
-RestDeclarationKonst -> ε
-DeclarationProm -> var ident RestDeclarationProm ;
-RestDeclarationProm -> , ident RestDeclarationProm
-RestDeclarationProm -> ε 
-SložPříkaz -> begin Instruction RestPříkazů end
+MethodDeclaration -> FunctionDeclaration MethodDeclaration
+MethodDeclaration -> ProcedureDeclaration MethodDeclaration 
+MethodDeclaration -> ε
+FunctionDeclaration -> function ident ( ident : type ) : type ; Declaration Block ;
+// TODO: method declaration
+ConstDeclaration -> const ident = number RestConstDeclaration ;
+RestConstDeclaration -> , ident = number RestConstDeclaration 
+RestConstDeclaration -> ε
+VarDeclaration -> var ident RestVarDeclaration ;
+RestVarDeclaration -> , ident RestVarDeclaration
+RestVarDeclaration -> ε 
+Block -> begin Instruction RestPříkazů end
 RestPříkazů -> ; Instruction RestPříkazů
 RestPříkazů -> ε
 Instruction -> ForBlock
@@ -18,7 +23,7 @@ Instruction -> IfBlock
 Instruction -> break
 Insturction -> FunctionCall
 Instruction -> WhileBlock
-Instruction -> SložPříkaz
+Instruction -> Block
 Instruction -> ε
 FunctionCall -> ident ( Expression RestOfFunctionExpression );
 FunctionCall -> ident ( );
@@ -41,7 +46,7 @@ Expression -> Term RestVýrazu
 Expression -> - Term RestVýrazu
 RestVýrazu -> + Term RestVýrazu
 RestVýrazu -> - Term RestVýrazu
-RestVýrazu ->ε
+RestVýrazu -> ε
 Term -> Faktor RestTermu
 RestTermu -> * Faktor RestTermu
 RestTermu -> / Faktor RestTermu
