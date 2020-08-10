@@ -1,16 +1,16 @@
-Program -> Dekl SložPříkaz
-Dekl -> DeklKonst Dekl 
-Dekl -> DeklProm Dekl 
-Dekl -> ε
-DeklKonst -> const ident = number ZbDeklKonst ;
-ZbDeklKonst -> , ident = number ZbDeklKonst 
-ZbDeklKonst -> ε
-DeklProm -> var ident ZbDeklProm ;
-ZbDeklProm -> , ident ZbDeklProm
-ZbDeklProm -> ε 
-SložPříkaz -> begin Instruction ZbPříkazů end
-ZbPříkazů -> ; Instruction ZbPříkazů
-ZbPříkazů -> ε
+Program -> Declaration SložPříkaz
+Declaration -> DeclarationKonst Declaration 
+Declaration -> DeclarationProm Declaration 
+Declaration -> ε
+DeclarationKonst -> const ident = number RestDeclarationKonst ;
+RestDeclarationKonst -> , ident = number RestDeclarationKonst 
+RestDeclarationKonst -> ε
+DeclarationProm -> var ident RestDeclarationProm ;
+RestDeclarationProm -> , ident RestDeclarationProm
+RestDeclarationProm -> ε 
+SložPříkaz -> begin Instruction RestPříkazů end
+RestPříkazů -> ; Instruction RestPříkazů
+RestPříkazů -> ε
 Instruction -> ForBlock
 Instruction -> ident := Expression
 Instruction -> write Expression
@@ -37,15 +37,15 @@ RelOp -> <
 RelOp -> >
 RelOp -> <=
 RelOp -> >=
-Expression -> Term ZbVýrazu
-Expression -> - Term ZbVýrazu
-ZbVýrazu -> + Term ZbVýrazu
-ZbVýrazu -> - Term ZbVýrazu
-ZbVýrazu ->ε
-Term -> Faktor ZbTermu
-ZbTermu -> * Faktor ZbTermu
-ZbTermu -> / Faktor ZbTermu
-ZbTermu -> ε
+Expression -> Term RestVýrazu
+Expression -> - Term RestVýrazu
+RestVýrazu -> + Term RestVýrazu
+RestVýrazu -> - Term RestVýrazu
+RestVýrazu ->ε
+Term -> Faktor RestTermu
+RestTermu -> * Faktor RestTermu
+RestTermu -> / Faktor RestTermu
+RestTermu -> ε
 Faktor -> ident
 Faktor -> number 
 Faktor  -> ( Expression ) 
