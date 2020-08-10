@@ -33,7 +33,7 @@ private:
     bool parseCondition(ASTNode*& result);
     bool parseInstruction(std::vector<ASTNode *>&result);
     bool parseAssign(ASTNode *&result, Token identifier);
-    bool parseProcedure(ASTNode *&result, Token identifier);
+    bool parseFunctionCall(ASTNode *&result, Token identifier);
     bool parseExpression(ASTNode*& result);
     bool parseRestExpression(ASTNode* previousExpression, ASTNode*& result);
     bool parseRestTerm(ASTNode* previousTerm, ASTNode*& result);

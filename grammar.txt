@@ -16,9 +16,14 @@ Instruction -> ident := Expression
 Instruction -> write Expression
 Instruction -> IfBlock
 Instruction -> break
-Instruction -> WhileBlock 
+Insturction -> FunctionCall
+Instruction -> WhileBlock
 Instruction -> SložPříkaz
-Instruction ->ε
+Instruction -> ε
+FunctionCall -> ident ( Expression RestOfFunctionExpression );
+FunctionCall -> ident ( );
+RestOfFunctionExpression -> , Expression RestOfFunctionExpression
+RestOfFunctionExpression -> ε
 WhileBlock -> while (Condition) do begin Instruction end;
 ForBlock -> for ident := Expression to Expression do begin Instruction end;
 ForBlock -> for ident := Expression downto Expression do begin Instruction end;

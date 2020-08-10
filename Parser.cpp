@@ -120,7 +120,7 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
                 return false;
             switch(lexer->peekNextToken().getKind()) {
                 case Kind::tok_left_paren:
-                    if(!parseProcedure(currentNodeResult, identifier))
+                    if(!parseFunctionCall(currentNodeResult, identifier))
                         return false;
                     break;
                 case Kind::tok_assign:
@@ -210,7 +210,7 @@ bool Parser::parseForBlock(ASTNode *&result) {
         default:
             return logError("Expected to or downto");
     }
-    
+
     ASTNode* endNode;
     if(!parseExpression(endNode))
         return false;
@@ -321,7 +321,7 @@ bool Parser::parseAssign(ASTNode *&result, Token identifier) {
     return true;
 }
 
-bool Parser::parseProcedure(ASTNode *&result, Token identifier) {
+bool Parser::parseFunctionCall(ASTNode *&result, Token identifier) {
 //    std::cout << "Parsing procedure" << std::endl;
     if(!eat(Token(Kind::tok_left_paren, "(")))
         return false;

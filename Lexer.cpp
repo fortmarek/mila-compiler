@@ -43,6 +43,7 @@ Token Lexer::token(const std::string &str) {
             {"const", Kind::tok_const},
             {"var", Kind::tok_var},
             {";", Kind::tok_divider},
+            {",", Kind::tok_}
             {"=", Kind::tok_init},
             {":=", Kind::tok_assign},
             {":", Kind::tok_type},
