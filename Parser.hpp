@@ -24,6 +24,8 @@ private:
     bool parseProgram();
     bool parseMethodDeclaration(std::vector<ASTNode*>& result);
     bool parseFunctionDeclaration(ASTNode*& result);
+    bool parseParameterDeclaration(std::vector<std::pair<std::string, MilaType>>& parameters);
+    bool parseRestParameterDeclaration(std::vector<std::pair<std::string, MilaType>>& parameters);
     bool parseDeclaration(std::vector<ASTNode*>& result);
     bool parseConstDeclaration(ASTNode*& result);
     bool parseVarDeclaration(ASTNode*& result);
@@ -41,8 +43,10 @@ private:
     bool parseRestTerm(ASTNode* previousTerm, ASTNode*& result);
     bool parseTerm(ASTNode*& result);
     bool parseFactor(ASTNode*& result);
+    bool parseIdentifier(ASTNode*& result);
     bool eat(Token token);
     bool readIdentifier(Token& token);
+    bool readType(MilaType& type);
 
     ASTNode* program;
     

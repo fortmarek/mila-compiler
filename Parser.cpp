@@ -14,6 +14,7 @@
 #include "AST/IfElseNode.h"
 #include "AST/WhileNode.h"
 #include "AST/BreakNode.h"
+#include "AST/FunctionNode.h"
 
 Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()) {}
 
@@ -56,7 +57,7 @@ bool Parser::parseProgram() {
 
     auto programNode = new ProgramASTNode(identifierToken.getValue(), declarationsNode, mainNode);
 
-//    programNode->print();
+    programNode->print();
 
     if(!eat(Token(Kind::tok_dot, ".")))
         return false;
@@ -89,6 +90,92 @@ bool Parser::parseFunctionDeclaration(ASTNode *&result) {
     Token identifier;
     if(!readIdentifier(identifier))
         return false;
+
+    if(!eat(Token(Kind::tok_left_paren, "(")))
+        return false;
+
+    std::vector<std::pair<std::string, MilaType>> parameters;
+    if(!parseParameterDeclaration(parameters))
+        return false;
+
+    if(!eat(Token(Kind::tok_right_paren, ")")))
+        return false;
+
+    if(!eat(Token(Kind::tok_type, ":")))
+        return false;
+
+    MilaType returnType;
+    if(!readType(returnType))
+        return false;
+
+    if(!eat(Token(Kind::tok_divider, ";")))
+        return false;
+
+    std::vector<ASTNode*> instructions = {};
+    if(!parseBlock(instructions))
+        return false;
+
+    if(!eat(Token(Kind::tok_divider, ";")))
+        return false;
+
+    result = new FunctionNode(
+            identifier.getValue(),
+            parameters,
+            returnType,
+            instructions
+    );
+
+    return true;
+}
+
+bool Parser::parseParameterDeclaration(std::vector<std::pair<std::string, MilaType>> &parameters) {
+    switch(lexer->peekNextToken().getKind()) {
+        case Kind::tok_identifier:
+            break;
+        default:
+            return true;
+    }
+
+    Token parameterIdentifier;
+    if(!readIdentifier(parameterIdentifier))
+        return false;
+
+    if(!eat(Token(Kind::tok_type, ":")))
+        return false;
+
+    MilaType type;
+    if(!readType(type))
+        return false;
+
+    parameters.emplace_back(parameterIdentifier.getValue(), type);
+
+    return parseRestParameterDeclaration(parameters);
+}
+
+bool Parser::parseRestParameterDeclaration(std::vector<std::pair<std::string, MilaType>> &parameters) {
+    switch(lexer->peekNextToken().getKind()) {
+        case Kind::tok_comma:
+            if(!eat(Token(Kind::tok_comma, ",")))
+                return false;
+            break;
+        default:
+            return true;
+    }
+
+    Token parameterIdentifier;
+    if(!readIdentifier(parameterIdentifier))
+        return false;
+
+    if(!eat(Token(Kind::tok_type, ":")))
+        return false;
+
+    MilaType type;
+    if(!readType(type))
+        return false;
+
+    parameters.emplace_back(parameterIdentifier.getValue(), type);
+
+    return parseRestParameterDeclaration(parameters);
 }
 
 bool Parser::parseDeclaration(std::vector<ASTNode*>& result) {
@@ -122,7 +209,7 @@ bool Parser::parseBlock(std::vector<ASTNode *> &result) {
 }
 
 bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
-//    std::cout << "Parsing instruction" << std::endl;
+    //    std::cout << "Parsing instruction" << std::endl;
     ASTNode* currentNodeResult = nullptr;
     switch(lexer->peekNextToken().getKind()) {
         case Kind::tok_if:
@@ -151,13 +238,15 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
                 case Kind::tok_left_paren:
                     if(!parseFunctionCall(currentNodeResult, identifier))
                         return false;
+                    if(!eat(Token(Kind::tok_divider, ";")))
+                        return false;
                     break;
                 case Kind::tok_assign:
                     if(!parseAssign(currentNodeResult, identifier))
                         return false;
                     if(!eat(Token(Kind::tok_divider, ";")))
                         return false;
-//            std::cout << "parsed assign" << std::endl;
+                    //            std::cout << "parsed assign" << std::endl;
                     break;
                 case Kind::tok_end:
                     return true;
@@ -183,14 +272,8 @@ bool Parser::parseWhileBlock(ASTNode *&result) {
     if(!eat(Token(Kind::tok_while, "while")))
         return false;
 
-    if(!eat(Token(Kind::tok_left_paren, "(")))
-        return false;
-
     ASTNode* conditionNode;
     if(!parseCondition(conditionNode))
-        return false;
-
-    if(!eat(Token(Kind::tok_right_paren, ")")))
         return false;
 
     if(!eat(Token(Kind::tok_do, "do")))
@@ -300,29 +383,41 @@ bool Parser::parseIfBlock(ASTNode *&result) {
 }
 
 bool Parser::parseCondition(ASTNode *&result) {
+    bool isParenthesised = false;
+
+    if(lexer->peekNextToken().getKind() == Kind::tok_left_paren) {
+        isParenthesised = true;
+        if(!eat(Token(Kind::tok_left_paren, "(")))
+            return false;
+    }
+
     ASTNode* leftExpression;
     ASTNode* rightExpression;
 
     if(!parseExpression(leftExpression))
         return false;
 
+    std::cout << "READ" << std::endl;
+
     std::string relationOperator;
-    switch(lexer->peekNextToken().getKind()) {
+    switch(lexer->getToken().getKind()) {
         case Kind::tok_init:
-            eat(Token(Kind::tok_init, "="));
             relationOperator = "=";
             break;
         case Kind::tok_notequal:
-            eat(Token(Kind::tok_notequal, "<>"));
             relationOperator = "<>";
             break;
         case Kind::tok_greaterequal:
-            eat(Token(Kind::tok_greaterequal, ">="));
             relationOperator = ">=";
             break;
         case Kind::tok_lessequal:
-            eat(Token(Kind::tok_lessequal, "=<"));
             relationOperator = "=<";
+            break;
+        case Kind::tok_less:
+            relationOperator = "<";
+            break;
+        case Kind::tok_greater:
+            relationOperator = ">";
             break;
         default:
             return logError("Expected relation operator");
@@ -331,13 +426,18 @@ bool Parser::parseCondition(ASTNode *&result) {
     if(!parseExpression(rightExpression))
         return false;
 
+    if(isParenthesised) {
+        if(!eat(Token(Kind::tok_right_paren, ")")))
+            return false;
+    }
+
     result = new BinOpNode(leftExpression, rightExpression, relationOperator);
 
     return true;
 }
 
 bool Parser::parseAssign(ASTNode *&result, Token identifier) {
-//    std::cout << "Parsing assign" << std::endl;
+    //    std::cout << "Parsing assign" << std::endl;
     if(!eat(Token(Kind::tok_assign, ":=")))
         return false;
 
@@ -351,7 +451,7 @@ bool Parser::parseAssign(ASTNode *&result, Token identifier) {
 }
 
 bool Parser::parseFunctionCall(ASTNode *&result, Token identifier) {
-//    std::cout << "Parsing procedure" << std::endl;
+    //    std::cout << "Parsing procedure" << std::endl;
     if(!eat(Token(Kind::tok_left_paren, "(")))
         return false;
 
@@ -365,14 +465,15 @@ bool Parser::parseFunctionCall(ASTNode *&result, Token identifier) {
             if(!parseExpression(parameter))
                 return false;
             result = new ProcedureNode(identifier.getValue(), {parameter});
-            return eat(Token(Kind::tok_right_paren, ")")) && eat(Token(Kind::tok_divider, ";"));
+            return eat(Token(Kind::tok_right_paren, ")"));
     }
 }
 
 bool Parser::eat(Token token) {
-    if(lexer->getToken().getKind() != token.getKind()) {
+    Token currentToken = lexer->getToken();
+    if(currentToken.getKind() != token.getKind()) {
         std::stringstream ss;
-        ss << "Unexpected token " << lexer->getToken().getValue() << ", expected: " << token.getValue();
+        ss << "Unexpected token " << currentToken.getValue() << ", expected: " << token.getValue();
         return logError(ss.str());
     } else {
         return true;
@@ -399,7 +500,7 @@ bool Parser::parseConstDeclaration(ASTNode*& result) {
         return logError("Expected =");
 
     Token number = lexer->getToken();
-//    std::cout << number.getValue() << std::endl;
+    //    std::cout << number.getValue() << std::endl;
     if(number.getKind() != Kind::tok_number)
         return logError("Expected number");
 
@@ -449,7 +550,7 @@ bool Parser::parseRestVarDeclaration(std::vector<ASTNode *>&result) {
 }
 
 bool Parser::parseExpression(ASTNode*& result) {
-//    std::cout << "Parsing expression" << std::endl;
+    //    std::cout << "Parsing expression" << std::endl;
     ASTNode* termNode;
     if(!parseTerm(termNode))
         return false;
@@ -502,7 +603,7 @@ bool Parser::parseRestTerm(ASTNode *previousTerm, ASTNode *&result) {
 }
 
 bool Parser::parseFactor(ASTNode*& result) {
-//    std::cout << "Parsing factor" << std::endl;
+    //    std::cout << "Parsing factor" << std::endl;
     switch(lexer->peekNextToken().getKind()) {
         case Kind::tok_number: {
             int value = std::atoi(lexer->getToken().getValue().c_str());
@@ -510,8 +611,7 @@ bool Parser::parseFactor(ASTNode*& result) {
             return true;
         }
         case Kind::tok_identifier:
-            result = new IdentifierNode(lexer->getToken().getValue());
-            return true;
+            return parseIdentifier(result);
         case Kind::tok_left_paren:
             eat(Token(Kind::tok_left_paren, "("));
             if(!parseExpression(result))
@@ -525,11 +625,35 @@ bool Parser::parseFactor(ASTNode*& result) {
     }
 }
 
+bool Parser::parseIdentifier(ASTNode *&result) {
+    Token identifier;
+    if(!readIdentifier(identifier))
+        return false;
+
+    switch(lexer->peekNextToken().getKind()) {
+        case Kind::tok_left_paren:
+            return parseFunctionCall(result, identifier);
+        default:
+            result = new IdentifierNode(identifier.getValue());
+            return true;
+    }
+}
+
 bool Parser::Parse() {
-//    std::cout << "Parsing program" << std::endl;
+    //    std::cout << "Parsing program" << std::endl;
     return parseProgram();
 }
 
 Token Parser::getNextToken() {
     return lexer->getToken();
+}
+
+bool Parser::readType(MilaType &type) {
+    switch(lexer->getToken().getKind()) {
+        case Kind::tok_integer:
+            type = MilaType::integer;
+            return true;
+        default:
+            return logError("Expected mila type");
+    }
 }

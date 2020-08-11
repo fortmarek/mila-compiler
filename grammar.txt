@@ -5,8 +5,12 @@ Declaration -> ε
 MethodDeclaration -> FunctionDeclaration MethodDeclaration
 MethodDeclaration -> ProcedureDeclaration MethodDeclaration 
 MethodDeclaration -> ε
-FunctionDeclaration -> function ident ( ident : type ) : type ; Declaration Block ;
+FunctionDeclaration -> function ident ( ParameterDeclaration ) : type ; Declaration Block ;
 // TODO: method declaration
+ParameterDeclaration -> ident : type RestParameterDeclaration
+ParameterDeclaration -> ε
+RestParameterDeclaration -> , ident : type RestParameterDeclaration
+RestParameterDeclaration -> ε
 ConstDeclaration -> const ident = number RestConstDeclaration ;
 RestConstDeclaration -> , ident = number RestConstDeclaration 
 RestConstDeclaration -> ε
@@ -21,20 +25,21 @@ Instruction -> ident := Expression
 Instruction -> write Expression
 Instruction -> IfBlock
 Instruction -> break
-Insturction -> FunctionCall
+Instruction -> FunctionCall;
 Instruction -> WhileBlock
 Instruction -> Block
 Instruction -> ε
-FunctionCall -> ident ( Expression RestOfFunctionExpression );
-FunctionCall -> ident ( );
+FunctionCall -> ident ( Expression RestOfFunctionExpression )
+FunctionCall -> ident ( )
 RestOfFunctionExpression -> , Expression RestOfFunctionExpression
 RestOfFunctionExpression -> ε
-WhileBlock -> while (Condition) do begin Instruction end;
+WhileBlock -> while Condition do begin Instruction end;
 ForBlock -> for ident := Expression to Expression do begin Instruction end;
 ForBlock -> for ident := Expression downto Expression do begin Instruction end;
 IfBlock -> if Condition then Instruction ElseBlock
 ElseBlock -> else Instruction 
 ElseBlock -> ε 
+Condition -> ( Expression RelOp Expression )
 Condition -> Expression RelOp Expression
 RelOp -> =
 RelOp -> <>
@@ -51,6 +56,8 @@ Term -> Faktor RestTermu
 RestTermu -> * Faktor RestTermu
 RestTermu -> / Faktor RestTermu
 RestTermu -> ε
-Faktor -> ident
+Faktor -> Ident
 Faktor -> number 
 Faktor  -> ( Expression ) 
+Ident -> ident
+Ident -> FunctionCall

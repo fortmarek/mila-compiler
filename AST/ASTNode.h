@@ -5,6 +5,10 @@
 #include "llvm/IR/Value.h"
 #include "../ASTWalker.h"
 
+enum MilaType {
+    integer
+};
+
 class ASTNode {
 public:
     const virtual void print();

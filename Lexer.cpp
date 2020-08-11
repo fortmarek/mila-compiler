@@ -16,7 +16,7 @@ Lexer::Lexer() :nextToken(firstToken()) {}
 
 std::string Lexer::peek() { return std::string (currentPtr, currentPtr + 1); }
 
-std::string Lexer::get() { return std::string (currentPtr, currentPtr++); }
+std::string Lexer::get() { return std::string (currentPtr, ++currentPtr); }
 
 bool Lexer::isSpace(std::string character) {
     return character == " " || character == "\n" || character == "\t";
@@ -48,6 +48,8 @@ Token Lexer::token(const std::string &str) {
             {"=", Kind::tok_init},
             {":=", Kind::tok_assign},
             {":", Kind::tok_type},
+            {",", Kind::tok_comma},
+            {"integer", Kind::tok_integer},
             {"begin", Kind::tok_begin},
             {"end", Kind::tok_end},
             {"(", Kind::tok_left_paren},
@@ -69,6 +71,8 @@ Token Lexer::token(const std::string &str) {
             {"<>", Kind::tok_notequal},
             {">=", Kind::tok_greaterequal},
             {"=<", Kind::tok_lessequal},
+            {">", Kind::tok_greater},
+            {"<", Kind::tok_less},
             {"break", Kind::tok_break},
     };
 
@@ -100,7 +104,13 @@ Token Lexer::digitToken() {
 
 Token Lexer::operatorToken() {
     auto startOfToken = currentPtr;
-    get();
+    std::string firstChar = get();
+
+    if(firstChar == "(" ||
+       firstChar == ")") {
+        return token(firstChar);
+    }
+
     while(isOperator(peek()))
         get();
     std::string operatorString(startOfToken, currentPtr);
@@ -136,11 +146,11 @@ Token Lexer::lexToken() {
 Token Lexer::getToken() {
     Token currentToken = nextToken;
     nextToken = lexToken();
-//    std::cout << currentToken.getValue() << std::endl;
-//    std::cout << currentToken.getKind() << std::endl;
-//    std::cout << nextToken.getValue() << std::endl;
-//    std::cout << nextToken.getKind() << std::endl;
-//    std::cout << "-----" << std::endl;
+    std::cout << currentToken.getValue() << std::endl;
+    std::cout << currentToken.getKind() << std::endl;
+    std::cout << nextToken.getValue() << std::endl;
+    std::cout << nextToken.getKind() << std::endl;
+    std::cout << "-----" << std::endl;
     return currentToken;
 }
 

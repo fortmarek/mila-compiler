@@ -63,6 +63,9 @@ enum Kind {
     tok_minus = -39,
     tok_division = -40,
     tok_divider = -41,
+    tok_comma = -42,
+    tok_greater = -43,
+    tok_less = -44,
 };
 
 
