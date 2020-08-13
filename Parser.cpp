@@ -73,13 +73,15 @@ bool Parser::parseMethodDeclaration(std::vector<ASTNode *> &result) {
             if(!parseFunctionDeclaration(functionNode))
                 return false;
             result.push_back(functionNode);
-            return true;
+            break;
         case Kind::tok_procedure:
             // TODO: Add procedure
             return false;
         default:
             return true;
     }
+
+    return parseMethodDeclaration(result);
 }
 
 bool Parser::parseFunctionDeclaration(ASTNode *&result) {
@@ -202,9 +204,16 @@ bool Parser::parseDeclaration(std::vector<ASTNode*>& result) {
 bool Parser::parseBlock(std::vector<ASTNode *> &result) {
     if(!eat(Token(Kind::tok_begin, "begin")))
         return false;
-    if(!parseInstruction(result))
+    if(!parseInstructions(result))
         return false;
     return eat(Token(Kind::tok_end, "end"));
+}
+
+bool Parser::parseInstructions(std::vector<ASTNode *> &result) {
+    if(!parseInstruction(result))
+        return false;
+
+    return parseRestInstruction(result);
 }
 
 bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
@@ -225,8 +234,8 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
             break;
         case Kind::tok_break:
             eat(Token(Kind::tok_break, "break"));
-            if(!eat(Token(Kind::tok_divider, ";")))
-                return false;
+//            if(!eat(Token(Kind::tok_divider, ";")))
+//                return false;
             currentNodeResult = new BreakNode();
             break;
         default:
@@ -237,14 +246,14 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
                 case Kind::tok_left_paren:
                     if(!parseFunctionCall(currentNodeResult, identifier))
                         return false;
-                    if(!eat(Token(Kind::tok_divider, ";")))
-                        return false;
+//                    if(!eat(Token(Kind::tok_divider, ";")))
+//                        return false;
                     break;
                 case Kind::tok_assign:
                     if(!parseAssign(currentNodeResult, identifier))
                         return false;
-                    if(!eat(Token(Kind::tok_divider, ";")))
-                        return false;
+//                    if(!eat(Token(Kind::tok_divider, ";")))
+//                        return false;
                     //            std::cout << "parsed assign" << std::endl;
                     break;
                 case Kind::tok_end:
@@ -257,14 +266,40 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
     }
 
     result.push_back(currentNodeResult);
+
+    return true;
+//    switch(lexer->peekNextToken().getKind()) {
+//        case Kind::tok_end:
+//            return true;
+//        case Kind::tok_else:
+//            return true;
+//        default:
+//            return parseInstruction(result);
+//    }
+}
+
+bool Parser::parseRestInstruction(std::vector<ASTNode *> &result) {
+    switch(lexer->peekNextToken().getKind()) {
+        case Kind::tok_divider:
+            break;
+        default:
+            return true;
+    }
+
+    if(!eat(Token(Kind::tok_divider, ";")))
+        return false;
+
     switch(lexer->peekNextToken().getKind()) {
         case Kind::tok_end:
             return true;
-        case Kind::tok_else:
-            return true;
         default:
-            return parseInstruction(result);
+            break;
     }
+
+    if(!parseInstruction(result))
+        return false;
+
+    return parseRestInstruction(result);
 }
 
 bool Parser::parseWhileBlock(ASTNode *&result) {
@@ -282,14 +317,14 @@ bool Parser::parseWhileBlock(ASTNode *&result) {
         return false;
 
     std::vector<ASTNode*> instructions = {};
-    if(!parseInstruction(instructions))
+    if(!parseInstructions(instructions))
         return false;
 
     ASTNode* body = new CompoundNode(instructions);
 
     result = new WhileNode(conditionNode, body);
 
-    return eat(Token(Kind::tok_end, "end")) && eat(Token(Kind::tok_divider, ";"));
+    return eat(Token(Kind::tok_end, "end"));
 }
 
 bool Parser::parseForBlock(ASTNode *&result) {
@@ -333,14 +368,14 @@ bool Parser::parseForBlock(ASTNode *&result) {
         return false;
 
     std::vector<ASTNode*> bodyInstructions = {};
-    if(!parseInstruction(bodyInstructions))
+    if(!parseInstructions(bodyInstructions))
         return false;
 
     if(!eat(Token(Kind::tok_end, "end")))
         return false;
 
-    if(!eat(Token(Kind::tok_divider, ";")))
-        return false;
+//    if(!eat(Token(Kind::tok_divider, ";")))
+//        return false;
 
     ASTNode* bodyNode = new CompoundNode(bodyInstructions);
 

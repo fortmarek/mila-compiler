@@ -34,7 +34,9 @@ private:
     bool parseForBlock(ASTNode*& result);
     bool parseIfBlock(ASTNode*& result);
     bool parseCondition(ASTNode*& result);
+    bool parseInstructions(std::vector<ASTNode *>& result);
     bool parseInstruction(std::vector<ASTNode *>&result);
+    bool parseRestInstruction(std::vector<ASTNode *>& result);
     bool parseAssign(ASTNode *&result, Token identifier);
     bool parseFunctionCall(ASTNode *&result, Token identifier);
     bool parseExpression(ASTNode*& result);

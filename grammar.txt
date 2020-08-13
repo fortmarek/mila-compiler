@@ -17,9 +17,11 @@ RestConstDeclaration -> ε
 VarDeclaration -> var ident RestVarDeclaration ;
 RestVarDeclaration -> , ident RestVarDeclaration
 RestVarDeclaration -> ε 
-Block -> begin Instruction RestPříkazů end
-RestPříkazů -> ; Instruction RestPříkazů
-RestPříkazů -> ε
+Block -> begin Instructions end
+RestInstruction -> ; Instructions
+RestInstruction -> ε
+RestInstruction -> ;
+Instructions -> Instruction RestInstruction
 Instruction -> ForBlock
 Instruction -> ident := Expression
 Instruction -> write Expression
