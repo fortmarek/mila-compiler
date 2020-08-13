@@ -113,12 +113,6 @@ llvm::Function* ASTWalker::visit(FunctionNode *functionNode) {
         parameterNames.push_back(parameterPair.first);
     }
 
-//    Function *F = Function::Create(FunctionType::get(retType, paramTypes, false),
-//                                   Function::ExternalLinkage, name, DecafToLLVM);
-//    symTable.insert(make_pair(name, F));
-//    BasicBlock *BBlock = BasicBlock::Create(getGlobalContext(), name+"_1", F);
-//    Builder->SetInsertPoint(BBlock);
-
     FunctionType *FT = FunctionType::get(
             returnType,
             paramaterTypes,
@@ -163,6 +157,14 @@ llvm::Function* ASTWalker::visit(FunctionNode *functionNode) {
     BasicBlock *BB = BasicBlock::Create(milaBuilder.getContext(), "entry", F);
     milaBuilder.SetInsertPoint(BB);
 
+    // Enable to write into parameters
+    for(auto const& parameterName: parameterNames) {
+        llvm::Value* value = symbolTable[parameterName];
+        AllocaInst* alloca = ASTWalker::createEntryBlockAlloca(F, Type::getInt32Ty(milaContext), parameterName);
+        symbolTable[parameterName] = alloca;
+        milaBuilder.CreateStore(value, alloca);
+    }
+
     // Allocate space for return value
     Function *function = milaBuilder.GetInsertBlock()->getParent();
     std::string identifier = functionNode->getIdentifier();
@@ -183,9 +185,8 @@ llvm::Value* ASTWalker::visit(ProcedureNode *procedureNode) {
     Function* function = milaModule.getFunction(procedureNode->getIdentifier());
     auto parametersIterator = procedureNode->getParameters().begin();
     for(auto const& arg: function->args()) {
-        llvm::Value* value = (*parametersIterator)->walk(this);
         if(arg.getType()->isPointerTy())
-            parameters.push_back(value);
+            parameters.push_back((*parametersIterator)->walk(this));
         else
             parameters.push_back(loadValue(*parametersIterator));
         parametersIterator++;
@@ -204,8 +205,8 @@ llvm::Value* ASTWalker::visit(IdentifierNode *identifierNode) {
 }
 
 llvm::Value* ASTWalker::visit(AssignNode *assignNode) {
-    llvm::Value* value = assignNode->getValue()->walk(this);
     std::string identifier = assignNode->getIdentifier();
+    llvm::Value* value = loadValue(assignNode->getValue());
     milaBuilder.CreateStore(value, symbolTable[identifier]);
     return value;
 }
@@ -234,6 +235,8 @@ llvm::Value* ASTWalker::visit(BinOpNode *binOpNode) {
         return milaBuilder.CreateICmpSGE(L, R, "sgetmp");
     else if(operationToken == "=<")
         return milaBuilder.CreateICmpSLE(L, R, "sletmp");
+    else if(operationToken == ">")
+        return milaBuilder.CreateICmpSGT(L, R, "sgttmp");
     else {
         std::cerr << "Invalid binary operator" << std::endl;
         return nullptr;
@@ -423,7 +426,6 @@ llvm::Value* ASTWalker::loadValue(const std::string& identifier) {
 }
 
 llvm::Value* ASTWalker::loadValue(ASTNode* node) {
-//    return node->walk(this);
     if(auto varNode = dynamic_cast<IdentifierNode*>(node))
         return loadValue(varNode->getIdentifier());
     else {

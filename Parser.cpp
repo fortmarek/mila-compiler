@@ -431,8 +431,6 @@ bool Parser::parseCondition(ASTNode *&result) {
     if(!parseExpression(leftExpression))
         return false;
 
-    std::cout << "READ" << std::endl;
-
     std::string relationOperator;
     switch(lexer->getToken().getKind()) {
         case Kind::tok_init:
