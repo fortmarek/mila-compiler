@@ -6,6 +6,7 @@
 #define SIMPLEFRONTEND_FUNCTIONNODE_H
 
 #include "ASTNode.h"
+#include "CompoundNode.h"
 #include <utility>
 
 class FunctionNode: public ASTNode {
@@ -14,14 +15,18 @@ public:
             std::string identifier,
             std::vector<std::pair<std::string, MilaType>> parameters,
             MilaType returnType,
-            std::vector<ASTNode*> calls
+            CompoundNode* block
     );
     const void print() override;
+    const MilaType getReturnType();
+    const std::vector<std::pair<std::string, MilaType>> getParameters();
+    const std::string getIdentifier();
+    CompoundNode* getBlock();
 private:
     std::string identifier;
     std::vector<std::pair<std::string, MilaType>> parameters;
     MilaType returnType;
-    std::vector<ASTNode*> calls;
+    CompoundNode* block;
 };
 
 

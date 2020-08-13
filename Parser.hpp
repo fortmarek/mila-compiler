@@ -2,7 +2,6 @@
 #define PJPPROJECT_PARSER_HPP
 
 #include "Lexer.hpp"
-
 #include "AST/ASTNode.h"
 #include <vector>
 

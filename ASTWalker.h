@@ -33,6 +33,7 @@ class IfElseNode;
 class ForNode;
 class WhileNode;
 class BreakNode;
+class FunctionNode;
 
 class ASTWalker {
 public:
@@ -53,6 +54,7 @@ public:
     llvm::Value* visit(ForNode* forNode);
     llvm::Value* visit(WhileNode* whileNode);
     llvm::Value* visit(BreakNode* breakNode);
+    llvm::Function* visit(FunctionNode* functionNode);
 private:
     llvm::LLVMContext milaContext;   // llvm context
     llvm::IRBuilder<> milaBuilder;   // llvm builder

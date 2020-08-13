@@ -18,6 +18,7 @@
 #include "AST/ForNode.h"
 #include "AST/WhileNode.h"
 #include "AST/BreakNode.h"
+#include "AST/FunctionNode.h"
 #include "Parser.hpp"
 
 ASTWalker::ASTWalker() :milaContext(), milaBuilder(milaContext), milaModule("mila", milaContext) {}
@@ -91,6 +92,90 @@ llvm::Value* ASTWalker::visit(VarNode *varNode) {
     AllocaInst* alloca = ASTWalker::createEntryBlockAlloca(function, Type::getInt32Ty(milaContext), identifier);
     symbolTable[identifier] = alloca;
     return alloca;
+}
+
+llvm::Function* ASTWalker::visit(FunctionNode *functionNode) {
+    llvm::Type *returnType = nullptr;
+    switch(functionNode->getReturnType()) {
+        case MilaType::integer:
+            returnType = milaBuilder.getInt32Ty();
+    }
+
+    std::vector<llvm::Type*> paramaterTypes;
+    std::vector<std::string> parameterNames;
+
+    for(auto const& parameterPair: functionNode->getParameters()) {
+        switch(parameterPair.second) {
+            case MilaType::integer:
+                paramaterTypes.push_back(milaBuilder.getInt32Ty());
+        }
+
+        parameterNames.push_back(parameterPair.first);
+    }
+
+//    Function *F = Function::Create(FunctionType::get(retType, paramTypes, false),
+//                                   Function::ExternalLinkage, name, DecafToLLVM);
+//    symTable.insert(make_pair(name, F));
+//    BasicBlock *BBlock = BasicBlock::Create(getGlobalContext(), name+"_1", F);
+//    Builder->SetInsertPoint(BBlock);
+
+    FunctionType *FT = FunctionType::get(
+            returnType,
+            paramaterTypes,
+            false
+    );
+
+    Function *F = Function::Create(
+            FT,
+            Function::ExternalLinkage,
+            functionNode->getIdentifier(),
+            milaModule
+    );
+
+    if (F->getName() != functionNode->getIdentifier()) {
+        // Delete the one we just made and get the existing one.
+        F->eraseFromParent();
+        F = milaModule.getFunction(functionNode->getIdentifier());
+
+        // If F already has a body, reject this.
+        if (!F->empty()) {
+            std::cerr << "redefinition of function" << std::endl;
+            return nullptr;
+        }
+
+        // If F took a different number of args, reject.
+        if (F->arg_size() != parameterNames.size()) {
+            std::cerr << "redefinition of function with different # args" << std::endl;
+            return nullptr;
+        }
+    }
+
+    unsigned index = 0;
+    for (Function::arg_iterator parameterIterator = F->arg_begin(); index != parameterNames.size();
+         ++parameterIterator, ++index) {
+        parameterIterator->setName(parameterNames[index]);
+
+        // Add arguments to variable symbol table.
+        symbolTable[parameterNames[index]] = parameterIterator;
+    }
+
+    // Create a new basic block to start insertion into.
+    BasicBlock *BB = BasicBlock::Create(milaBuilder.getContext(), "entry", F);
+    milaBuilder.SetInsertPoint(BB);
+
+    // Allocate space for return value
+    Function *function = milaBuilder.GetInsertBlock()->getParent();
+    std::string identifier = functionNode->getIdentifier();
+    AllocaInst* alloca = ASTWalker::createEntryBlockAlloca(function, returnType, identifier);
+    symbolTable[identifier] = alloca;
+
+    functionNode->getBlock()->walk(this);
+
+    milaBuilder.CreateRet(milaBuilder.CreateLoad(alloca, identifier));
+
+    verifyFunction(*F);
+
+    return F;
 }
 
 llvm::Value* ASTWalker::visit(ProcedureNode *procedureNode) {
@@ -338,6 +423,7 @@ llvm::Value* ASTWalker::loadValue(const std::string& identifier) {
 }
 
 llvm::Value* ASTWalker::loadValue(ASTNode* node) {
+//    return node->walk(this);
     if(auto varNode = dynamic_cast<IdentifierNode*>(node))
         return loadValue(varNode->getIdentifier());
     else {

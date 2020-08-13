@@ -40,24 +40,23 @@ bool Parser::parseProgram() {
     if(lexer->getToken().getKind() != Kind::tok_divider)
         return logError("Missing ; after program declaration");
 
-    std::vector<ASTNode*> instructions = {};
-
-    if(!parseMethodDeclaration(instructions))
+    std::vector<ASTNode*> methodDeclarations = {};
+    if(!parseMethodDeclaration(methodDeclarations))
         return false;
 
+    auto methodDeclarationsNode = new CompoundNode(methodDeclarations);
+
+    std::vector<ASTNode*> instructions = {};
     if(!parseDeclaration(instructions))
         return false;
-
-    // TODO: Delete
-    auto declarationsNode = new CompoundNode({});
 
     if(!parseBlock(instructions))
         return false;
     auto mainNode = new MainNode(instructions);
 
-    auto programNode = new ProgramASTNode(identifierToken.getValue(), declarationsNode, mainNode);
+    auto programNode = new ProgramASTNode(identifierToken.getValue(), methodDeclarationsNode, mainNode);
 
-    programNode->print();
+//    programNode->print();
 
     if(!eat(Token(Kind::tok_dot, ".")))
         return false;
@@ -122,7 +121,7 @@ bool Parser::parseFunctionDeclaration(ASTNode *&result) {
             identifier.getValue(),
             parameters,
             returnType,
-            instructions
+            new CompoundNode(instructions)
     );
 
     return true;
@@ -535,11 +534,17 @@ bool Parser::parseRestVarDeclaration(std::vector<ASTNode *>&result) {
     if(!eat(Token(Kind::tok_type, ":")))
         return false;
 
-    Token type;
-    if(!readIdentifier(type))
+    MilaType type;
+    if(!readType(type))
         return false;
 
-    result.push_back(new VarNode(identifier.getValue(), type.getValue()));
+    Token tokenType;
+    switch(type) {
+        case MilaType::integer:
+            tokenType = Token(Kind::tok_integer, "integer");
+    }
+
+    result.push_back(new VarNode(identifier.getValue(), tokenType.getValue()));
 
     if(!eat(Token(Kind::tok_divider, ";")))
         return false;
