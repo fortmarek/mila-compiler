@@ -43,6 +43,37 @@ const Module& ASTWalker::generate(ASTNode* program) {
             Arg.setName("x");
     }
 
+    // create dec function
+    {
+        std::vector<Type*> Ints(1, Type::getInt32PtrTy(milaContext));
+        FunctionType *FT = FunctionType::get(
+                milaBuilder.getVoidTy(),
+                Ints,
+                false
+        );
+
+        Function *F = Function::Create(
+                FT,
+                Function::ExternalLinkage,
+                "dec",
+                milaModule
+        );
+
+        F->args().begin()->setName("x");
+
+        BasicBlock *BB = BasicBlock::Create(milaBuilder.getContext(), "entry", F);
+        milaBuilder.SetInsertPoint(BB);
+
+        llvm::Value* value = F->args().begin();
+
+        llvm::Value* loadedValue = milaBuilder.CreateLoad(value, "x");
+        llvm::Value* oneValue = llvm::ConstantInt::get(milaContext, llvm::APInt(32, 1));
+        llvm::Value* subValue = milaBuilder.CreateSub(loadedValue, oneValue, "subtmp");
+        milaBuilder.CreateStore(subValue, value);
+
+        milaBuilder.CreateRet(nullptr);
+    }
+
     program->walk(this);
 
     return this->milaModule;
