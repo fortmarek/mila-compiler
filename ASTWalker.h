@@ -34,6 +34,7 @@ class ForNode;
 class WhileNode;
 class BreakNode;
 class FunctionDeclarationNode;
+class ExitNode;
 
 class ASTWalker {
 public:
@@ -55,6 +56,7 @@ public:
     llvm::Value* visit(WhileNode* whileNode);
     llvm::Value* visit(BreakNode* breakNode);
     llvm::Function* visit(FunctionDeclarationNode* functionNode);
+    llvm::Value* visit(ExitNode* exitNode);
 private:
     llvm::LLVMContext milaContext;   // llvm context
     llvm::IRBuilder<> milaBuilder;   // llvm builder

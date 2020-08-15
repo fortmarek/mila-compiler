@@ -19,6 +19,7 @@
 #include "WhileNode.h"
 #include "BreakNode.h"
 #include "FunctionDeclarationNode.h"
+#include "ExitNode.h"
 
 const void ASTNode::print() {
 
@@ -55,5 +56,7 @@ llvm::Value* ASTNode::walk(ASTWalker *walker) {
         return walker->visit(breakNode);
     else if(auto functionNode = dynamic_cast<FunctionDeclarationNode*>(this))
         return walker->visit(functionNode);
+    else if(auto exitNode = dynamic_cast<ExitNode*>(this))
+        return walker->visit(exitNode);
     return nullptr;
 }

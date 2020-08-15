@@ -55,7 +55,7 @@ Token Lexer::token(const std::string &str) {
             {"(", Kind::tok_left_paren},
             {")", Kind::tok_right_paren},
             {"*", Kind::tok_multiplier},
-            {"\\", Kind::tok_division},
+            {"div", Kind::tok_division},
             {"+", Kind::tok_plus},
             {"-", Kind::tok_minus},
             {".", Kind::tok_dot},
@@ -70,10 +70,11 @@ Token Lexer::token(const std::string &str) {
             {"downto", Kind::tok_downto},
             {"<>", Kind::tok_notequal},
             {">=", Kind::tok_greaterequal},
-            {"=<", Kind::tok_lessequal},
+            {"<=", Kind::tok_lessequal},
             {">", Kind::tok_greater},
             {"<", Kind::tok_less},
             {"break", Kind::tok_break},
+            {"exit", Kind::tok_exit},
     };
 
     auto token = kindMap.find(str);

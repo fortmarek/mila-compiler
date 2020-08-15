@@ -270,6 +270,8 @@ llvm::Value* ASTWalker::visit(BinOpNode *binOpNode) {
         return milaBuilder.CreateSub(L, R, "subtmp");
     else if(operationToken == "*")
         return milaBuilder.CreateMul(L, R, "multmp");
+    else if(operationToken == "div")
+        return milaBuilder.CreateSDiv(L, R, "sdivtmp");
     else if(operationToken == "mod")
         return milaBuilder.CreateURem(L, R, "uremtmp");
     else if(operationToken == "=")
@@ -278,7 +280,7 @@ llvm::Value* ASTWalker::visit(BinOpNode *binOpNode) {
         return milaBuilder.CreateICmpNE(L, R, "notcmptmp");
     else if(operationToken == ">=")
         return milaBuilder.CreateICmpSGE(L, R, "sgetmp");
-    else if(operationToken == "=<")
+    else if(operationToken == "<=")
         return milaBuilder.CreateICmpSLE(L, R, "sletmp");
     else if(operationToken == ">")
         return milaBuilder.CreateICmpSGT(L, R, "sgttmp");
@@ -429,9 +431,8 @@ llvm::Value* ASTWalker::visit(IfElseNode *ifElseNode) {
     milaBuilder.SetInsertPoint(ifBB);
     llvm::Value* ifValue = loadValue(ifElseNode->getIfNode());
 
-    milaBuilder.CreateBr(mergeBB);
-    // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
-    ifBB = milaBuilder.GetInsertBlock();
+    if(!llvm::dyn_cast<llvm::ReturnInst>(ifValue))
+        milaBuilder.CreateBr(mergeBB);
 
     // Emit else block.
     function->getBasicBlockList().push_back(elseBB);
@@ -444,24 +445,25 @@ llvm::Value* ASTWalker::visit(IfElseNode *ifElseNode) {
         elseValue = Constant::getNullValue(Type::getInt32Ty(milaContext));
     }
 
-    milaBuilder.CreateBr(mergeBB);
-    // codegen of 'Else' can change the current block, update ElseBB for the PHI.
-    elseBB = milaBuilder.GetInsertBlock();
+    if(!llvm::dyn_cast<llvm::ReturnInst>(elseValue))
+        milaBuilder.CreateBr(mergeBB);
 
     // Emit merge block.
     function->getBasicBlockList().push_back(mergeBB);
     milaBuilder.SetInsertPoint(mergeBB);
 
-    llvm::PHINode *PN = milaBuilder.CreatePHI(Type::getInt32Ty(milaContext), 2, "iftmp");
-    PN->addIncoming(ifValue, ifBB);
-    PN->addIncoming(elseValue, elseBB);
-    return PN;
+    return Constant::getNullValue(Type::getInt32Ty(milaContext));
 }
 
 llvm::Value* ASTWalker::visit(BreakNode *breakNode) {
     llvm::BasicBlock* currentLoop = loops.front();
     loops.pop();
     return milaBuilder.CreateBr(currentLoop);
+}
+
+llvm::Value* ASTWalker::visit(ExitNode *exitNode) {
+    return milaBuilder.CreateRetVoid();
+
 }
 
 llvm::AllocaInst* ASTWalker::createEntryBlockAlloca(llvm::Function *function, llvm::Type *ty,

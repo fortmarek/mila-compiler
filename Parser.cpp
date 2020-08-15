@@ -15,6 +15,7 @@
 #include "AST/WhileNode.h"
 #include "AST/BreakNode.h"
 #include "AST/FunctionDeclarationNode.h"
+#include "AST/ExitNode.h"
 
 Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()) {}
 
@@ -280,6 +281,10 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
             eat(Token(Kind::tok_break, "break"));
             currentNodeResult = new BreakNode();
             break;
+        case Kind::tok_exit:
+            eat(Token(Kind::tok_exit, "exit"));
+            currentNodeResult = new ExitNode();
+            break;
         case Kind::tok_begin:
             if(!parseBlock(instructions))
                 return false;
@@ -477,7 +482,7 @@ bool Parser::parseCondition(ASTNode *&result) {
             relationOperator = ">=";
             break;
         case Kind::tok_lessequal:
-            relationOperator = "=<";
+            relationOperator = "<=";
             break;
         case Kind::tok_less:
             relationOperator = "<";

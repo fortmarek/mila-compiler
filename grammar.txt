@@ -27,7 +27,8 @@ Instruction -> ident := Expression
 Instruction -> write Expression
 Instruction -> IfBlock
 Instruction -> break
-Instruction -> FunctionCall;
+Instruction -> exit
+Instruction -> FunctionCall
 Instruction -> WhileBlock
 Instruction -> Block
 Instruction -> ε
@@ -56,7 +57,7 @@ RestVýrazu -> - Term RestVýrazu
 RestVýrazu -> ε
 Term -> Faktor RestTermu
 RestTermu -> * Faktor RestTermu
-RestTermu -> / Faktor RestTermu
+RestTermu -> div Faktor RestTermu
 RestTermu -> ε
 Faktor -> Ident
 Faktor -> number 
