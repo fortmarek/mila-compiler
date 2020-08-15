@@ -126,6 +126,8 @@ llvm::Value* ASTWalker::visit(VarNode *varNode) {
 }
 
 llvm::Function* ASTWalker::visit(FunctionDeclarationNode *functionNode) {
+    currentFunction = functionNode;
+
     llvm::Type *returnType = nullptr;
     switch(functionNode->getReturnType()) {
         case MilaType::integer:
@@ -220,7 +222,7 @@ llvm::Function* ASTWalker::visit(FunctionDeclarationNode *functionNode) {
     } else {
         functionNode->getBlock()->walk(this);
 
-        milaBuilder.CreateRet(nullptr);
+        milaBuilder.CreateRetVoid();
     }
 
     verifyFunction(*F);
@@ -465,8 +467,17 @@ llvm::Value* ASTWalker::visit(BreakNode *breakNode) {
 }
 
 llvm::Value* ASTWalker::visit(ExitNode *exitNode) {
-    return milaBuilder.CreateRetVoid();
+    if(!currentFunction)
+        return milaBuilder.CreateRet(ConstantInt::get(Type::getInt32Ty(milaContext), 0));
 
+    std::string identifier;
+    switch(currentFunction->getReturnType()) {
+        case MilaType::integer:
+            identifier = currentFunction->getIdentifier();
+            return milaBuilder.CreateRet(milaBuilder.CreateLoad(symbolTable[identifier], identifier));
+        case MilaType::void_type:
+            return milaBuilder.CreateRetVoid();
+    }
 }
 
 llvm::AllocaInst* ASTWalker::createEntryBlockAlloca(llvm::Function *function, llvm::Type *ty,

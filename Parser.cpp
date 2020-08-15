@@ -601,39 +601,14 @@ bool Parser::parseConstDeclaration(ASTNode*& result) {
     return true;
 }
 
-//bool Parser::parseParameterIdentifiers(std::vector<std::string> &parameters) {
-//    Token identifier;
-//    if(!readIdentifier(identifier))
-//        return false;
-//
-//    parameters.push_back(identifier.getValue());
-//
-//    return parseRestParameterIdentifiers(parameters);
-//}
-//
-//bool Parser::parseRestParameterIdentifiers(std::vector<std::string> &parameters) {
-//    switch(lexer->peekNextToken().getKind()) {
-//        case Kind::tok_comma:
-//            eat(Token(Kind::tok_comma, ","));
-//            break;
-//        default:
-//            return true;
-//    }
-//
-//    Token identifier;
-//    if(!readIdentifier(identifier))
-//        return false;
-//
-//    parameters.push_back(identifier.getValue());
-//
-//    return parseRestParameterIdentifiers(parameters);
-//}
-
-
 bool Parser::parseVarDeclaration(ASTNode *&result) {
     if(!eat(Token(Kind::tok_var, "var")))
         return false;
 
+    return parseTypedVarDeclaration(result);
+}
+
+bool Parser::parseTypedVarDeclaration(ASTNode *&result) {
     std::vector<std::string> varIdentifiers;
 
     Token identifier;
@@ -669,9 +644,39 @@ bool Parser::parseVarDeclaration(ASTNode *&result) {
         varDeclarations.push_back(new VarNode(identifier, tokenType.getValue()));
     }
 
-    result = new CompoundNode(varDeclarations);
+    std::vector<ASTNode*> additionalVarDeclarations;
+    if(!parseRestTypedVarDeclaration(additionalVarDeclarations))
+        return false;
+
+    std::vector<ASTNode*> results;
+    results.insert(results.end(), varDeclarations.begin(), varDeclarations.end());
+    results.insert(results.end(), additionalVarDeclarations.begin(), additionalVarDeclarations.end());
+
+    result = new CompoundNode(results);
+
     return true;
 }
+
+bool Parser::parseRestTypedVarDeclaration(std::vector<ASTNode *> &result) {
+    if(lexer->peekNextToken().getKind() != Kind::tok_identifier)
+        return true;
+
+    std::vector<ASTNode*> varDeclarations;
+
+    ASTNode* varDeclaration;
+    if(!parseTypedVarDeclaration(varDeclaration))
+        return false;
+
+    if(!parseRestTypedVarDeclaration(varDeclarations))
+        return false;
+
+    varDeclarations.push_back(varDeclaration);
+
+    result = varDeclarations;
+
+    return true;
+}
+
 
 bool Parser::parseRestVarDeclaration(std::vector<std::string>&result) {
     if(lexer->peekNextToken().getKind() != Kind::tok_comma)

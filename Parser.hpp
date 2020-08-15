@@ -30,6 +30,8 @@ private:
     bool parseDeclaration(std::vector<ASTNode*>& result);
     bool parseConstDeclaration(ASTNode*& result);
     bool parseVarDeclaration(ASTNode*& result);
+    bool parseTypedVarDeclaration(ASTNode*& result);
+    bool parseRestTypedVarDeclaration(std::vector<ASTNode*>& result);
     bool parseRestVarDeclaration(std::vector<std::string>& result);
     bool parseBlock(std::vector<ASTNode *> &result);
     bool parseWhileBlock(ASTNode* & result);

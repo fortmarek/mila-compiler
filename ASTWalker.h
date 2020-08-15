@@ -65,6 +65,7 @@ private:
     llvm::Value* loadValue(const std::string& identifier);
     llvm::Value* loadValue(ASTNode* node);
     std::queue<llvm::BasicBlock*> loops;
+    FunctionDeclarationNode* currentFunction = nullptr;
     static llvm::AllocaInst *createEntryBlockAlloca(llvm::Function *function, llvm::Type *ty, const std::string &name);
 };
 
