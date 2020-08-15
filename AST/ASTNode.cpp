@@ -10,7 +10,7 @@
 #include "VarNode.h"
 #include "IntNode.h"
 #include "MainNode.h"
-#include "ProcedureNode.h"
+#include "FunctionCallNode.h"
 #include "IdentifierNode.h"
 #include "AssignNode.h"
 #include "BinOpNode.h"
@@ -18,7 +18,7 @@
 #include "ForNode.h"
 #include "WhileNode.h"
 #include "BreakNode.h"
-#include "FunctionNode.h"
+#include "FunctionDeclarationNode.h"
 
 const void ASTNode::print() {
 
@@ -29,7 +29,7 @@ llvm::Value* ASTNode::walk(ASTWalker *walker) {
         return walker->visit(program);
     else if (auto mainNode = dynamic_cast<MainNode*>(this))
         return walker->visit(mainNode);
-    else if(auto procedureNode = dynamic_cast<ProcedureNode*>(this))
+    else if(auto procedureNode = dynamic_cast<FunctionCallNode*>(this))
         return walker->visit(procedureNode);
     else if(auto compound = dynamic_cast<CompoundNode*>(this))
         return walker->visit(compound);
@@ -53,7 +53,7 @@ llvm::Value* ASTNode::walk(ASTWalker *walker) {
         return walker->visit(whileNode);
     else if(auto breakNode = dynamic_cast<BreakNode*>(this))
         return walker->visit(breakNode);
-    else if(auto functionNode = dynamic_cast<FunctionNode*>(this))
+    else if(auto functionNode = dynamic_cast<FunctionDeclarationNode*>(this))
         return walker->visit(functionNode);
     return nullptr;
 }

@@ -10,7 +10,7 @@
 #include "AST/VarNode.h"
 #include "AST/IntNode.h"
 #include "AST/MainNode.h"
-#include "AST/ProcedureNode.h"
+#include "AST/FunctionCallNode.h"
 #include "AST/IdentifierNode.h"
 #include "AST/AssignNode.h"
 #include "AST/BinOpNode.h"
@@ -18,7 +18,7 @@
 #include "AST/ForNode.h"
 #include "AST/WhileNode.h"
 #include "AST/BreakNode.h"
-#include "AST/FunctionNode.h"
+#include "AST/FunctionDeclarationNode.h"
 #include "Parser.hpp"
 
 ASTWalker::ASTWalker() :milaContext(), milaBuilder(milaContext), milaModule("mila", milaContext) {}
@@ -125,7 +125,7 @@ llvm::Value* ASTWalker::visit(VarNode *varNode) {
     return alloca;
 }
 
-llvm::Function* ASTWalker::visit(FunctionNode *functionNode) {
+llvm::Function* ASTWalker::visit(FunctionDeclarationNode *functionNode) {
     llvm::Type *returnType = nullptr;
     switch(functionNode->getReturnType()) {
         case MilaType::integer:
@@ -211,7 +211,7 @@ llvm::Function* ASTWalker::visit(FunctionNode *functionNode) {
     return F;
 }
 
-llvm::Value* ASTWalker::visit(ProcedureNode *procedureNode) {
+llvm::Value* ASTWalker::visit(FunctionCallNode *procedureNode) {
     std::vector<Value*> parameters = {};
     Function* function = milaModule.getFunction(procedureNode->getIdentifier());
     auto parametersIterator = procedureNode->getParameters().begin();
@@ -268,6 +268,8 @@ llvm::Value* ASTWalker::visit(BinOpNode *binOpNode) {
         return milaBuilder.CreateICmpSLE(L, R, "sletmp");
     else if(operationToken == ">")
         return milaBuilder.CreateICmpSGT(L, R, "sgttmp");
+    else if(operationToken == "<")
+        return milaBuilder.CreateICmpSLT(L, R, "slttmp");
     else {
         std::cerr << "Invalid binary operator" << std::endl;
         return nullptr;

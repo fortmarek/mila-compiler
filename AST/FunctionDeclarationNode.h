@@ -2,16 +2,16 @@
 // Created by Marek Fořt on 2020-08-10.
 //
 
-#ifndef SIMPLEFRONTEND_FUNCTIONNODE_H
-#define SIMPLEFRONTEND_FUNCTIONNODE_H
+#ifndef SIMPLEFRONTEND_FUNCTIONDECLARATIONNODE_H
+#define SIMPLEFRONTEND_FUNCTIONDECLARATIONNODE_H
 
 #include "ASTNode.h"
 #include "CompoundNode.h"
 #include <utility>
 
-class FunctionNode: public ASTNode {
+class FunctionDeclarationNode: public ASTNode {
 public:
-    FunctionNode(
+    FunctionDeclarationNode(
             std::string identifier,
             std::vector<std::pair<std::string, MilaType>> parameters,
             MilaType returnType,
@@ -30,4 +30,4 @@ private:
 };
 
 
-#endif //SIMPLEFRONTEND_FUNCTIONNODE_H
+#endif //SIMPLEFRONTEND_FUNCTIONDECLARATIONNODE_H

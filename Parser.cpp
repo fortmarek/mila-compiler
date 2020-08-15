@@ -5,7 +5,7 @@
 #include "AST/ConstNode.h"
 #include "AST/CompoundNode.h"
 #include "AST/VarNode.h"
-#include "AST/ProcedureNode.h"
+#include "AST/FunctionCallNode.h"
 #include "AST/AssignNode.h"
 #include "AST/IdentifierNode.h"
 #include "AST/BinOpNode.h"
@@ -14,7 +14,7 @@
 #include "AST/IfElseNode.h"
 #include "AST/WhileNode.h"
 #include "AST/BreakNode.h"
-#include "AST/FunctionNode.h"
+#include "AST/FunctionDeclarationNode.h"
 
 Parser::Parser(std::unique_ptr<Lexer>& lexer) : lexer(lexer.release()) {}
 
@@ -119,7 +119,7 @@ bool Parser::parseFunctionDeclaration(ASTNode *&result) {
     if(!eat(Token(Kind::tok_divider, ";")))
         return false;
 
-    result = new FunctionNode(
+    result = new FunctionDeclarationNode(
             identifier.getValue(),
             parameters,
             returnType,
@@ -489,14 +489,14 @@ bool Parser::parseFunctionCall(ASTNode *&result, Token identifier) {
 
     switch(lexer->peekNextToken().getKind()) {
         case Kind::tok_right_paren:
-            result = new ProcedureNode(lexer->getToken().getValue());
+            result = new FunctionCallNode(lexer->getToken().getValue());
             return eat(Token(Kind::tok_right_paren, ")")) && eat(Token(Kind::tok_divider, ";"));
         default:
             // TODO: Multiple parameters
             ASTNode* parameter = nullptr;
             if(!parseExpression(parameter))
                 return false;
-            result = new ProcedureNode(identifier.getValue(), {parameter});
+            result = new FunctionCallNode(identifier.getValue(), {parameter});
             return eat(Token(Kind::tok_right_paren, ")"));
     }
 }

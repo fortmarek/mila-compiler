@@ -25,7 +25,7 @@ class ConstNode;
 class VarNode;
 class IntNode;
 class MainNode;
-class ProcedureNode;
+class FunctionCallNode;
 class IdentifierNode;
 class AssignNode;
 class BinOpNode;
@@ -33,7 +33,7 @@ class IfElseNode;
 class ForNode;
 class WhileNode;
 class BreakNode;
-class FunctionNode;
+class FunctionDeclarationNode;
 
 class ASTWalker {
 public:
@@ -46,7 +46,7 @@ public:
     llvm::Value* visit(VarNode* varNode);
     llvm::Value* visit(IntNode* intNode);
     llvm::Value* visit(MainNode* mainNode);
-    llvm::Value* visit(ProcedureNode* procedureNode);
+    llvm::Value* visit(FunctionCallNode* procedureNode);
     llvm::Value* visit(IdentifierNode* identifierNode);
     llvm::Value* visit(AssignNode* assignNode);
     llvm::Value* visit(BinOpNode* binOpNode);
@@ -54,7 +54,7 @@ public:
     llvm::Value* visit(ForNode* forNode);
     llvm::Value* visit(WhileNode* whileNode);
     llvm::Value* visit(BreakNode* breakNode);
-    llvm::Function* visit(FunctionNode* functionNode);
+    llvm::Function* visit(FunctionDeclarationNode* functionNode);
 private:
     llvm::LLVMContext milaContext;   // llvm context
     llvm::IRBuilder<> milaBuilder;   // llvm builder
