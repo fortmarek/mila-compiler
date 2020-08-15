@@ -261,8 +261,8 @@ bool Parser::parseInstructions(std::vector<ASTNode *> &result) {
 }
 
 bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
-    //    std::cout << "Parsing instruction" << std::endl;
     ASTNode* currentNodeResult = nullptr;
+    std::vector<ASTNode*> instructions = {};
     switch(lexer->peekNextToken().getKind()) {
         case Kind::tok_if:
             if(!parseIfBlock(currentNodeResult))
@@ -279,6 +279,11 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
         case Kind::tok_break:
             eat(Token(Kind::tok_break, "break"));
             currentNodeResult = new BreakNode();
+            break;
+        case Kind::tok_begin:
+            if(!parseBlock(instructions))
+                return false;
+            currentNodeResult = new CompoundNode(instructions);
             break;
         default:
             Token identifier;
@@ -305,14 +310,6 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
     result.push_back(currentNodeResult);
 
     return true;
-//    switch(lexer->peekNextToken().getKind()) {
-//        case Kind::tok_end:
-//            return true;
-//        case Kind::tok_else:
-//            return true;
-//        default:
-//            return parseInstruction(result);
-//    }
 }
 
 bool Parser::parseRestInstruction(std::vector<ASTNode *> &result) {

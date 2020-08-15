@@ -376,6 +376,7 @@ llvm::Value* ASTWalker::visit(ForNode *forNode) {
     switch (forNode->getType()) {
         case ForType::to:
             nextVar = milaBuilder.CreateAdd(variable, one, "nextvar");
+            break;
         case ForType::downto:
             nextVar = milaBuilder.CreateSub(variable, one, "nextvar");
     }
@@ -436,7 +437,12 @@ llvm::Value* ASTWalker::visit(IfElseNode *ifElseNode) {
     function->getBasicBlockList().push_back(elseBB);
     milaBuilder.SetInsertPoint(elseBB);
 
-    llvm::Value* elseValue = loadValue(ifElseNode->getElseNode());
+    llvm::Value* elseValue;
+    if(ifElseNode->getElseNode()) {
+        elseValue = loadValue(ifElseNode->getElseNode());
+    } else {
+        elseValue = Constant::getNullValue(Type::getInt32Ty(milaContext));
+    }
 
     milaBuilder.CreateBr(mergeBB);
     // codegen of 'Else' can change the current block, update ElseBB for the PHI.
