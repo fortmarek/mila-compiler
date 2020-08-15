@@ -5,7 +5,9 @@ Declaration -> ε
 MethodDeclaration -> FunctionDeclaration MethodDeclaration
 MethodDeclaration -> ProcedureDeclaration MethodDeclaration 
 MethodDeclaration -> ε
-FunctionDeclaration -> function ident ( ParameterDeclaration ) : type ; Declaration Block ;
+FunctionDeclaration -> function ident ( ParameterDeclaration ) : type ; FunctionRestDeclaration ;
+FunctionRestDeclaration -> Declaration Block
+FunctionRestDeclaration -> forward
 ProcedureDeclaration -> procedure ident ( ParameterDeclaration ); Declaration Block ; 
 ParameterDeclaration -> ident : type RestParameterDeclaration
 ParameterDeclaration -> ε

@@ -115,12 +115,9 @@ bool Parser::parseFunctionDeclaration(ASTNode *&result) {
     if(!eat(Token(Kind::tok_divider, ";")))
         return false;
 
-    std::vector<ASTNode*> instructions = {};
-    if(!parseBlock(instructions))
-        return false;
+    std::vector<ASTNode*> instructions;
 
-    if(!eat(Token(Kind::tok_divider, ";")))
-        return false;
+    parseRestFunctionDeclaration(instructions);
 
     result = new FunctionDeclarationNode(
             identifier.getValue(),
@@ -128,6 +125,25 @@ bool Parser::parseFunctionDeclaration(ASTNode *&result) {
             returnType,
             new CompoundNode(instructions)
     );
+
+    return eat(Token(Kind::tok_divider, ";"));
+}
+
+bool Parser::parseRestFunctionDeclaration(std::vector<ASTNode*>& result) {
+    if(lexer->peekNextToken().getKind() == Kind::tok_forward) {
+        eat(Token(Kind::tok_forward, "forward"));
+        result = {};
+        return true;
+    }
+
+    std::vector<ASTNode*> instructions = {};
+    if(!parseDeclaration(instructions))
+        return false;
+
+    if(!parseBlock(instructions))
+        return false;
+
+    result = instructions;
 
     return true;
 }

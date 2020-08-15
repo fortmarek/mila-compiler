@@ -192,6 +192,9 @@ llvm::Function* ASTWalker::visit(FunctionDeclarationNode *functionNode) {
         symbolTable[parameterNames[index]] = parameterIterator;
     }
 
+    if(functionNode->getBlock()->getChildren().empty())
+        return F;
+
     // Create a new basic block to start insertion into.
     BasicBlock *BB = BasicBlock::Create(milaBuilder.getContext(), "entry", F);
     milaBuilder.SetInsertPoint(BB);
