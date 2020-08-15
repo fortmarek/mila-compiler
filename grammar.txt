@@ -14,7 +14,7 @@ RestParameterDeclaration -> ε
 ConstDeclaration -> const ident = number RestConstDeclaration ;
 RestConstDeclaration -> , ident = number RestConstDeclaration 
 RestConstDeclaration -> ε
-VarDeclaration -> var ident RestVarDeclaration ;
+VarDeclaration -> var ident RestVarDeclaration : type ;
 RestVarDeclaration -> , ident RestVarDeclaration
 RestVarDeclaration -> ε 
 Block -> begin Instructions end

@@ -152,7 +152,11 @@ bool Parser::parseProcedureDeclaration(ASTNode *&result) {
     if(!eat(Token(Kind::tok_divider, ";")))
         return false;
 
-    std::vector<ASTNode*> instructions = {};
+    std::vector<ASTNode*> instructions;
+
+    if(!parseDeclaration(instructions))
+        return false;
+
     if(!parseBlock(instructions))
         return false;
 
@@ -579,24 +583,50 @@ bool Parser::parseConstDeclaration(ASTNode*& result) {
     return true;
 }
 
+//bool Parser::parseParameterIdentifiers(std::vector<std::string> &parameters) {
+//    Token identifier;
+//    if(!readIdentifier(identifier))
+//        return false;
+//
+//    parameters.push_back(identifier.getValue());
+//
+//    return parseRestParameterIdentifiers(parameters);
+//}
+//
+//bool Parser::parseRestParameterIdentifiers(std::vector<std::string> &parameters) {
+//    switch(lexer->peekNextToken().getKind()) {
+//        case Kind::tok_comma:
+//            eat(Token(Kind::tok_comma, ","));
+//            break;
+//        default:
+//            return true;
+//    }
+//
+//    Token identifier;
+//    if(!readIdentifier(identifier))
+//        return false;
+//
+//    parameters.push_back(identifier.getValue());
+//
+//    return parseRestParameterIdentifiers(parameters);
+//}
+
+
 bool Parser::parseVarDeclaration(ASTNode *&result) {
     if(!eat(Token(Kind::tok_var, "var")))
         return false;
-    std::vector<ASTNode*> varDeclarations = {};
-    if(!parseRestVarDeclaration(varDeclarations))
-        return false;
 
-    result = new CompoundNode(varDeclarations);
-    return true;
-}
-
-bool Parser::parseRestVarDeclaration(std::vector<ASTNode *>&result) {
-    if(lexer->peekNextToken().getKind() != Kind::tok_identifier)
-        return true;
+    std::vector<std::string> varIdentifiers;
 
     Token identifier;
     if(!readIdentifier(identifier))
         return false;
+
+    varIdentifiers.push_back(identifier.getValue());
+
+    if(!parseRestVarDeclaration(varIdentifiers))
+        return false;
+
     if(!eat(Token(Kind::tok_type, ":")))
         return false;
 
@@ -613,14 +643,31 @@ bool Parser::parseRestVarDeclaration(std::vector<ASTNode *>&result) {
             return logError("Unexpected void keyword");
     }
 
-    result.push_back(new VarNode(identifier.getValue(), tokenType.getValue()));
-
     if(!eat(Token(Kind::tok_divider, ";")))
         return false;
 
-    parseRestVarDeclaration(result);
+    std::vector<ASTNode*> varDeclarations;
+    for(auto const& identifier: varIdentifiers) {
+        varDeclarations.push_back(new VarNode(identifier, tokenType.getValue()));
+    }
 
+    result = new CompoundNode(varDeclarations);
     return true;
+}
+
+bool Parser::parseRestVarDeclaration(std::vector<std::string>&result) {
+    if(lexer->peekNextToken().getKind() != Kind::tok_comma)
+        return true;
+
+    eat(Token(Kind::tok_comma, ","));
+
+    Token identifier;
+    if(!readIdentifier(identifier))
+        return false;
+
+    result.push_back(identifier.getValue());
+
+    return parseRestVarDeclaration(result);
 }
 
 bool Parser::parseExpression(ASTNode*& result) {
