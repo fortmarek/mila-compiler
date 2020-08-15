@@ -324,8 +324,6 @@ llvm::Value* ASTWalker::visit(WhileNode* whileNode) {
 
     Value* condition = whileNode->getCondition()->walk(this);
 
-    Value *one = ConstantInt::get(Type::getInt32Ty(milaContext), 1);
-
     // Create the "after loop" block and insert it.
     BasicBlock *AfterBB = BasicBlock::Create(milaContext, "afterloop", function);
     loops.push(AfterBB);
@@ -372,6 +370,9 @@ llvm::Value* ASTWalker::visit(ForNode *forNode) {
     Value *oldValue = symbolTable[valueName];
     symbolTable[valueName] = variable;
 
+    BasicBlock *AfterBB = BasicBlock::Create(milaContext, "afterloop", function);
+    loops.push(AfterBB);
+
     // Emit the body of the loop.  This, like any other expr, can change the
     // current BB.  Note that we ignore the value computed by the body, but don't
     // allow an error.
@@ -395,14 +396,13 @@ llvm::Value* ASTWalker::visit(ForNode *forNode) {
 
     // Create the "after loop" block and insert it.
     BasicBlock *LoopEndBB = milaBuilder.GetInsertBlock();
-    BasicBlock *AfterBB = BasicBlock::Create(milaContext, "afterloop", function);
-    loops.push(AfterBB);
 
     // Insert the conditional branch into the end of LoopEndBB.
     milaBuilder.CreateCondBr(endCondition, LoopBB, AfterBB);
 
     // Any new code will be inserted in AfterBB.
     milaBuilder.SetInsertPoint(AfterBB);
+
     loops.pop();
 
     // Add a new entry to the PHI node for the backedge.
@@ -436,7 +436,7 @@ llvm::Value* ASTWalker::visit(IfElseNode *ifElseNode) {
     milaBuilder.SetInsertPoint(ifBB);
     llvm::Value* ifValue = loadValue(ifElseNode->getIfNode());
 
-    if(!llvm::dyn_cast<llvm::ReturnInst>(ifValue))
+    if(!llvm::dyn_cast<llvm::ReturnInst>(ifValue) && !llvm::dyn_cast<llvm::BranchInst>(ifValue))
         milaBuilder.CreateBr(mergeBB);
 
     // Emit else block.
@@ -450,7 +450,7 @@ llvm::Value* ASTWalker::visit(IfElseNode *ifElseNode) {
         elseValue = Constant::getNullValue(Type::getInt32Ty(milaContext));
     }
 
-    if(!llvm::dyn_cast<llvm::ReturnInst>(elseValue))
+    if(!llvm::dyn_cast<llvm::ReturnInst>(elseValue) && !llvm::dyn_cast<llvm::BranchInst>(elseValue))
         milaBuilder.CreateBr(mergeBB);
 
     // Emit merge block.
