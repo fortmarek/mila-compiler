@@ -23,6 +23,7 @@ private:
     bool parseProgram();
     bool parseMethodDeclaration(std::vector<ASTNode*>& result);
     bool parseFunctionDeclaration(ASTNode*& result);
+    bool parseProcedureDeclaration(ASTNode*& result);
     bool parseParameterDeclaration(std::vector<std::pair<std::string, MilaType>>& parameters);
     bool parseRestParameterDeclaration(std::vector<std::pair<std::string, MilaType>>& parameters);
     bool parseDeclaration(std::vector<ASTNode*>& result);

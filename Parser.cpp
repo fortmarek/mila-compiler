@@ -67,19 +67,21 @@ bool Parser::parseProgram() {
 }
 
 bool Parser::parseMethodDeclaration(std::vector<ASTNode *> &result) {
+    ASTNode* methodNode;
     switch(lexer->peekNextToken().getKind()) {
         case Kind::tok_function:
-            ASTNode* functionNode;
-            if(!parseFunctionDeclaration(functionNode))
+            if(!parseFunctionDeclaration(methodNode))
                 return false;
-            result.push_back(functionNode);
             break;
         case Kind::tok_procedure:
-            // TODO: Add procedure
-            return false;
+            if(!parseProcedureDeclaration(methodNode))
+                return false;
+            break;
         default:
             return true;
     }
+
+    result.push_back(methodNode);
 
     return parseMethodDeclaration(result);
 }
@@ -123,6 +125,44 @@ bool Parser::parseFunctionDeclaration(ASTNode *&result) {
             identifier.getValue(),
             parameters,
             returnType,
+            new CompoundNode(instructions)
+    );
+
+    return true;
+}
+
+bool Parser::parseProcedureDeclaration(ASTNode *&result) {
+    if(!eat(Token(Kind::tok_procedure, "procedure")))
+        return false;
+
+    Token identifier;
+    if(!readIdentifier(identifier))
+        return false;
+
+    if(!eat(Token(Kind::tok_left_paren, "(")))
+        return false;
+
+    std::vector<std::pair<std::string, MilaType>> parameters;
+    if(!parseParameterDeclaration(parameters))
+        return false;
+
+    if(!eat(Token(Kind::tok_right_paren, ")")))
+        return false;
+
+    if(!eat(Token(Kind::tok_divider, ";")))
+        return false;
+
+    std::vector<ASTNode*> instructions = {};
+    if(!parseBlock(instructions))
+        return false;
+
+    if(!eat(Token(Kind::tok_divider, ";")))
+        return false;
+
+    result = new FunctionDeclarationNode(
+            identifier.getValue(),
+            parameters,
+            MilaType::void_type,
             new CompoundNode(instructions)
     );
 
@@ -234,8 +274,6 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
             break;
         case Kind::tok_break:
             eat(Token(Kind::tok_break, "break"));
-//            if(!eat(Token(Kind::tok_divider, ";")))
-//                return false;
             currentNodeResult = new BreakNode();
             break;
         default:
@@ -246,15 +284,10 @@ bool Parser::parseInstruction(std::vector<ASTNode *> &result) {
                 case Kind::tok_left_paren:
                     if(!parseFunctionCall(currentNodeResult, identifier))
                         return false;
-//                    if(!eat(Token(Kind::tok_divider, ";")))
-//                        return false;
                     break;
                 case Kind::tok_assign:
                     if(!parseAssign(currentNodeResult, identifier))
                         return false;
-//                    if(!eat(Token(Kind::tok_divider, ";")))
-//                        return false;
-                    //            std::cout << "parsed assign" << std::endl;
                     break;
                 case Kind::tok_end:
                     return true;
@@ -575,6 +608,9 @@ bool Parser::parseRestVarDeclaration(std::vector<ASTNode *>&result) {
     switch(type) {
         case MilaType::integer:
             tokenType = Token(Kind::tok_integer, "integer");
+            break;
+        case MilaType::void_type:
+            return logError("Unexpected void keyword");
     }
 
     result.push_back(new VarNode(identifier.getValue(), tokenType.getValue()));

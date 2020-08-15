@@ -6,7 +6,8 @@
 #include "../ASTWalker.h"
 
 enum MilaType {
-    integer
+    integer,
+    void_type
 };
 
 class ASTNode {

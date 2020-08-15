@@ -6,7 +6,7 @@ MethodDeclaration -> FunctionDeclaration MethodDeclaration
 MethodDeclaration -> ProcedureDeclaration MethodDeclaration 
 MethodDeclaration -> ε
 FunctionDeclaration -> function ident ( ParameterDeclaration ) : type ; Declaration Block ;
-// TODO: method declaration
+ProcedureDeclaration -> procedure ident ( ParameterDeclaration ); Declaration Block ; 
 ParameterDeclaration -> ident : type RestParameterDeclaration
 ParameterDeclaration -> ε
 RestParameterDeclaration -> , ident : type RestParameterDeclaration

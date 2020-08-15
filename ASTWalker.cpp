@@ -130,6 +130,10 @@ llvm::Function* ASTWalker::visit(FunctionDeclarationNode *functionNode) {
     switch(functionNode->getReturnType()) {
         case MilaType::integer:
             returnType = milaBuilder.getInt32Ty();
+            break;
+        case MilaType::void_type:
+            returnType = milaBuilder.getVoidTy();
+            break;
     }
 
     std::vector<llvm::Type*> paramaterTypes;
@@ -139,6 +143,10 @@ llvm::Function* ASTWalker::visit(FunctionDeclarationNode *functionNode) {
         switch(parameterPair.second) {
             case MilaType::integer:
                 paramaterTypes.push_back(milaBuilder.getInt32Ty());
+                break;
+            case MilaType::void_type:
+                std::cerr << "Unexpected void value" << std::endl;
+                return nullptr;
         }
 
         parameterNames.push_back(parameterPair.first);
@@ -196,15 +204,21 @@ llvm::Function* ASTWalker::visit(FunctionDeclarationNode *functionNode) {
         milaBuilder.CreateStore(value, alloca);
     }
 
-    // Allocate space for return value
-    Function *function = milaBuilder.GetInsertBlock()->getParent();
-    std::string identifier = functionNode->getIdentifier();
-    AllocaInst* alloca = ASTWalker::createEntryBlockAlloca(function, returnType, identifier);
-    symbolTable[identifier] = alloca;
+    // Allocate space for return value if it's not void
+    if(functionNode->getReturnType() != MilaType::void_type) {
+        Function *function = milaBuilder.GetInsertBlock()->getParent();
+        std::string identifier = functionNode->getIdentifier();
+        AllocaInst* alloca = ASTWalker::createEntryBlockAlloca(function, returnType, identifier);
+        symbolTable[identifier] = alloca;
 
-    functionNode->getBlock()->walk(this);
+        functionNode->getBlock()->walk(this);
 
-    milaBuilder.CreateRet(milaBuilder.CreateLoad(alloca, identifier));
+        milaBuilder.CreateRet(milaBuilder.CreateLoad(alloca, identifier));
+    } else {
+        functionNode->getBlock()->walk(this);
+
+        milaBuilder.CreateRet(nullptr);
+    }
 
     verifyFunction(*F);
 
